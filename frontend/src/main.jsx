@@ -29,6 +29,7 @@ const scenarios = [
   {
     id: 'room-conflict',
     label: 'Conflitto con alternativa',
+    event: demoScenario.event,
     description: 'La sala è occupata, ma il sistema trova una soluzione.',
     notice: demoNotice,
     facts: [
@@ -42,6 +43,7 @@ const scenarios = [
   {
     id: 'room-clear',
     label: 'Nessun conflitto',
+    event: clearEvent,
     description: 'Il nuovo orario è libero e la sala può restare la stessa.',
     notice: `Il ${clearEvent.name} #${clearEvent.id} è stato spostato dalle 14:00 alle 16:00 del 1 novembre. La durata rimane di ${clearEvent.duration_min} minuti.`,
     facts: [
@@ -55,6 +57,7 @@ const scenarios = [
   {
     id: 'human-review',
     label: 'Richiesta incompleta',
+    event: demoScenario.event,
     description: 'Manca un orario verificabile: H-OS chiede una conferma.',
     notice: 'Il workshop AI #204 è stato spostato più tardi il 31 ottobre. La durata rimane di 90 minuti.',
     facts: [
@@ -68,6 +71,7 @@ const scenarios = [
   {
     id: 'no-alternative',
     label: 'Conflitto senza alternativa',
+    event: demoScenario.event,
     description: 'Il conflitto esiste, ma nessuna sala soddisfa i vincoli.',
     scenarioId: 'no-alternative',
     notice: demoNotice,
@@ -104,8 +108,9 @@ function InfoRow({ label, value, tone = '' }) { return <div className="info-row"
 function ScenarioCard({ scenario, onChange, onRun, busy }) {
   return <section className="context-card scenario-card" aria-label="Scenario sintetico della demo">
     <div className="context-heading"><span>SCENARIO SINTETICO</span><Badge tone="blue">Dati demo</Badge></div>
-    <label className="scenario-select" htmlFor="scenario"><span>Scegli un percorso</span><select id="scenario" value={scenario.id} onChange={event => onChange(event.target.value)} disabled={busy}>{scenarios.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
-    <h2>{scenario.label}</h2>
+    <p className="scenario-intro">Scegli un caso per vedere come Event Coordinator gestisce il cambio.</p>
+    <div className="scenario-options" role="group" aria-label="Scenari disponibili">{scenarios.map(item => <button key={item.id} type="button" className={`scenario-option ${item.id === scenario.id ? 'selected' : ''}`} onClick={() => onChange(item.id)} disabled={busy} aria-current={item.id === scenario.id ? 'true' : undefined} aria-label={`${item.label}: ${item.event?.name} #${item.event?.id}`}><span className="scenario-option-title">{item.label}</span><span className="scenario-option-meta">{item.event?.name} <b>#{item.event?.id}</b></span><span className="scenario-option-state">{item.id === scenario.id ? 'Attivo' : 'Apri'}</span></button>)}</div>
+    <div className="scenario-selected"><span className="overline">CASO ATTIVO · {scenario.label}</span><h2>{scenario.event?.name} <span>#{scenario.event?.id}</span></h2></div>
     <p>{scenario.description}</p>
     <div className="scenario-grid">{scenario.facts.map(([label, value]) => <div key={label}><span>{label}</span><strong>{value}</strong></div>)}</div>
     <button className="scenario-button" type="button" onClick={onRun} disabled={busy}>Avvia simulazione <span aria-hidden="true">↗</span></button>
