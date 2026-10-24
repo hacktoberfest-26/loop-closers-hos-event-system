@@ -35,7 +35,7 @@ The core problem is fragmentation: organizational knowledge can become distribut
 
 ## 02 — Ontology-driven architecture
 
-Inspired by Palantir Foundry, H-OS uses a theoretical organizational ontology to represent the ecosystem as a shared operational model.
+H-OS uses a theoretical organizational ontology to represent the ecosystem as a shared operational model.
 
 | Model layer | What it represents |
 | --- | --- |

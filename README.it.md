@@ -35,7 +35,7 @@ Il problema centrale è la frammentazione: la conoscenza organizzativa può dist
 
 ## 02 — Architettura guidata dall'ontologia
 
-Ispirato a Palantir Foundry, H-OS utilizza un'ontologia organizzativa teorica per rappresentare l'ecosistema come un modello operativo condiviso.
+H-OS utilizza un'ontologia organizzativa teorica per rappresentare l'ecosistema come un modello operativo condiviso.
 
 | Livello del modello | Cosa rappresenta |
 | --- | --- |
