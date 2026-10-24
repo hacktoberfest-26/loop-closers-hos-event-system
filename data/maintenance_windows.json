@@ -1,0 +1,6 @@
+[
+  {"id":"MW-001","date":"2026-10-31","start":"12:00","end":"13:00","building_id":"K","reason":"catering delivery and kitchen reset","blocks_event":false,"data_status":"synthetic"},
+  {"id":"MW-002","date":"2026-11-01","start":"08:00","end":"10:30","building_id":"SPORTS","reason":"field safety inspection","blocks_event":true,"data_status":"synthetic"},
+  {"id":"MW-003","date":"2026-11-02","start":"08:00","end":"09:00","building_id":"E","reason":"AV system test","blocks_event":false,"data_status":"synthetic"},
+  {"id":"MW-004","date":"2026-11-04","start":"13:00","end":"15:00","building_id":"Q","reason":"guest house housekeeping turnover","blocks_event":true,"data_status":"synthetic"}
+]

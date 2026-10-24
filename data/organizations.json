@@ -1,0 +1,7 @@
+[
+  {"id":"ORG-COLLEGE","name":"H-FARM College","type":"education","contact_channel":"college-operations","data_status":"synthetic"},
+  {"id":"ORG-BS","name":"H-FARM Business School","type":"education","contact_channel":"business-school-operations","data_status":"synthetic"},
+  {"id":"ORG-STARTUP","name":"Entrepreneurship & Startup Center","type":"innovation","contact_channel":"startup-center","data_status":"synthetic"},
+  {"id":"ORG-CAMPUS","name":"Campus Operations","type":"operations","contact_channel":"space-coordination","data_status":"synthetic"},
+  {"id":"ORG-COMMUNITY","name":"Community Programs","type":"events","contact_channel":"event-operations","data_status":"synthetic"}
+]

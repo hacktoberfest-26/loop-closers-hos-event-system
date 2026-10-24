@@ -1,0 +1,6 @@
+[
+  {"id":"P-001","name":"Elena Rossi","role":"Event Operations Manager","organization_id":"ORG-COMMUNITY","can_ingest":true,"can_approve":false,"data_status":"synthetic"},
+  {"id":"P-002","name":"Marco Bianchi","role":"Space Coordinator","organization_id":"ORG-CAMPUS","can_ingest":false,"can_approve":true,"data_status":"synthetic"},
+  {"id":"P-003","name":"Sara Conti","role":"Administrator","organization_id":"ORG-CAMPUS","can_ingest":false,"can_approve":false,"can_view_audit":true,"data_status":"synthetic"},
+  {"id":"P-004","name":"Davide Neri","role":"Programme Lead","organization_id":"ORG-COLLEGE","can_ingest":true,"can_approve":false,"data_status":"synthetic"}
+]

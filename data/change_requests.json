@@ -1,0 +1,74 @@
+[
+  {
+    "id": "CR-001",
+    "channel": "email",
+    "language": "it",
+    "received_at": "2026-10-28T09:14:00Z",
+    "event_id": "204",
+    "raw_text": "Il workshop AI #204 è stato spostato dalle 15:00 alle 17:30 del 31 ottobre. La durata rimane di 90 minuti.",
+    "gold_outcome": "valid_change"
+  },
+  {
+    "id": "CR-002",
+    "channel": "slack",
+    "language": "en",
+    "received_at": "2026-10-28T10:02:00Z",
+    "event_id": "207",
+    "raw_text": "Research Demo Day 207 moves to 10:30 on Nov 1. Keep the 120-minute duration; the room can change if needed.",
+    "gold_outcome": "valid_change"
+  },
+  {
+    "id": "CR-003",
+    "channel": "forwarded_email",
+    "language": "it",
+    "received_at": "2026-10-28T11:45:00Z",
+    "event_id": "208",
+    "raw_text": "Fwd: aggiornamento orientamento studenti. L'inizio dovrebbe essere intorno alle undici e mezza, ma attendiamo conferma.",
+    "gold_outcome": "human_review"
+  },
+  {
+    "id": "CR-004",
+    "channel": "whatsapp",
+    "language": "it",
+    "received_at": "2026-10-28T12:18:00Z",
+    "event_id": "204",
+    "raw_text": "Il workshop AI #204 non è stato spostato alle 17:30. Restano valide le 15:00 e la sala B3-201.",
+    "gold_outcome": "human_review"
+  },
+  {
+    "id": "CR-005",
+    "channel": "email",
+    "language": "en",
+    "received_at": "2026-10-28T13:20:00Z",
+    "event_id": null,
+    "raw_text": "Please move the afternoon workshop to 17:30 on October 31 for 90 minutes. I cannot find the event number.",
+    "gold_outcome": "human_review"
+  },
+  {
+    "id": "CR-006",
+    "channel": "calendar_comment",
+    "language": "it",
+    "received_at": "2026-10-28T14:01:00Z",
+    "event_id": "204",
+    "raw_text": "Spostare l'evento #204 alle 17:30 del 31 ottobre. La nuova durata è 240 minuti.",
+    "gold_outcome": "human_review"
+  },
+  {
+    "id": "CR-007",
+    "channel": "email",
+    "language": "en",
+    "received_at": "2026-10-29T08:31:00Z",
+    "event_id": "208",
+    "raw_text": "Student Orientation #208 is rescheduled from 11:00 to 13:00 on November 1. Duration stays 60 minutes.",
+    "gold_outcome": "valid_change"
+  },
+  {
+    "id": "CR-008",
+    "channel": "slack",
+    "language": "it",
+    "received_at": "2026-10-29T16:22:00Z",
+    "event_id": "209",
+    "raw_text": "Per il roundtable #209: confermate le 14:00 del primo novembre, ma serve una sala accessibile con tavolo circolare.",
+    "gold_outcome": "no_time_change"
+  }
+]

@@ -1,0 +1,6 @@
+[
+  {"id":"POL-001","name":"booking_write_requires_approval","scope":"room_booking","rule":"Only Space Coordinator may approve a booking change","on_violation":"human_review","data_status":"synthetic"},
+  {"id":"POL-002","name":"capacity_guard","scope":"venue_assignment","rule":"attendance_expected must be <= venue capacity","on_violation":"reject_candidate","data_status":"synthetic"},
+  {"id":"POL-003","name":"maintenance_guard","scope":"venue_assignment","rule":"Do not assign a venue during a blocking maintenance window","on_violation":"human_review","data_status":"synthetic"},
+  {"id":"POL-004","name":"evidence_required","scope":"llm_extraction","rule":"Every extracted field must be supported by source evidence or remain null","on_violation":"human_review","data_status":"synthetic"}
+]

@@ -1,0 +1,62 @@
+[
+  {
+    "id": "BK-204",
+    "event_id": "204",
+    "room": "B3-201",
+    "date": "2026-10-31",
+    "start": "15:00",
+    "end": "16:30",
+    "status": "confirmed",
+    "source_ref": "booking://synthetic/BK-204"
+  },
+  {
+    "id": "BK-205",
+    "event_id": "205",
+    "room": "B3-201",
+    "date": "2026-10-31",
+    "start": "17:00",
+    "end": "19:00",
+    "status": "confirmed",
+    "source_ref": "booking://synthetic/BK-205"
+  },
+  {
+    "id": "BK-206",
+    "event_id": "206",
+    "room": "B3-203",
+    "date": "2026-10-31",
+    "start": "18:00",
+    "end": "19:30",
+    "status": "confirmed",
+    "source_ref": "booking://synthetic/BK-206"
+  },
+  {
+    "id": "BK-207",
+    "event_id": "207",
+    "room": "B3-202",
+    "date": "2026-11-01",
+    "start": "09:30",
+    "end": "11:30",
+    "status": "confirmed",
+    "source_ref": "booking://synthetic/BK-207"
+  },
+  {
+    "id": "BK-208",
+    "event_id": "208",
+    "room": "B3-201",
+    "date": "2026-11-01",
+    "start": "11:00",
+    "end": "12:00",
+    "status": "confirmed",
+    "source_ref": "booking://synthetic/BK-208"
+  },
+  {
+    "id": "BK-209",
+    "event_id": "209",
+    "room": "B3-202",
+    "date": "2026-11-01",
+    "start": "14:00",
+    "end": "15:30",
+    "status": "tentative",
+    "source_ref": "booking://synthetic/BK-209"
+  }
+]

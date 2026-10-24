@@ -1,0 +1,6 @@
+[
+  {"id": "R-001", "name": "portable projector", "quantity": 2, "available": 1, "source_ref": "inventory://synthetic/R-001"},
+  {"id": "R-002", "name": "hybrid camera kit", "quantity": 2, "available": 1, "source_ref": "inventory://synthetic/R-002"},
+  {"id": "R-003", "name": "wireless microphone set", "quantity": 3, "available": 2, "source_ref": "inventory://synthetic/R-003"},
+  {"id": "R-004", "name": "accessible seating kit", "quantity": 4, "available": 4, "source_ref": "inventory://synthetic/R-004"}
+]

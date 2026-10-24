@@ -1,0 +1,8 @@
+[
+  {"venue_id":"E","venue_name":"The Hill","event_types":["conference","lecture","graduation","town_hall"],"capacity_range":[50,700],"requirements":["seating","presentation","accessible_access"],"data_status":"public_fact_plus_synthetic_operational_profile"},
+  {"venue_id":"K","venue_name":"La Serra Restaurant","event_types":["dinner","networking","private_event","coworking"],"capacity_range":[10,180],"requirements":["catering","flexible_layout"],"data_status":"public_fact_plus_synthetic_operational_profile"},
+  {"venue_id":"N","venue_name":"Startup Village & Entrepreneurship Center","event_types":["pitch","workshop","startup_meetup","office_hours"],"capacity_range":[10,150],"requirements":["presentation","wifi","hybrid_video"],"data_status":"inferred_from_public_function"},
+  {"venue_id":"Q","venue_name":"Villa Annia Guest House","event_types":["executive_meeting","retreat","corporate_event"],"capacity_range":[6,80],"requirements":["catering","parking","quiet_space"],"data_status":"public_fact_plus_synthetic_operational_profile"},
+  {"venue_id":"SPORTS","venue_name":"Sports Area","event_types":["sports","team_building","outdoor_activity"],"capacity_range":[10,500],"requirements":["outdoor_space","safety_staff"],"data_status":"public_fact_plus_synthetic_operational_profile"},
+  {"venue_id":"D","venue_name":"University Programme","event_types":["class","seminar","orientation","roundtable"],"capacity_range":[10,120],"requirements":["seating","presentation","wifi"],"data_status":"inferred_from_public_function"}
+]

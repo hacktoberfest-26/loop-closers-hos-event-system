@@ -1,0 +1,7 @@
+<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <title>H-OS loop mark</title>
+  <rect width="40" height="40" rx="11" fill="#111111"/>
+  <path d="M19.25 11.5H17.5C12.806 11.5 9 15.306 9 20C9 24.694 12.806 28.5 17.5 28.5H19.25" stroke="#FFFFFF" stroke-width="3.25" stroke-linecap="round"/>
+  <path d="M20.75 11.5H22.5C27.194 11.5 31 15.306 31 20C31 24.694 27.194 28.5 22.5 28.5H20.75" stroke="#FFFFFF" stroke-width="3.25" stroke-linecap="round"/>
+  <path d="M15.75 20H24.25" stroke="#FF6B35" stroke-width="3.25" stroke-linecap="round"/>
+</svg>

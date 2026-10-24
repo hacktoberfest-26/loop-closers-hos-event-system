@@ -1,0 +1,4 @@
+[
+  {"id":"TPL-ROOM-CHANGE-IT","event_type":"room_change","language":"it","channel":"email","subject":"Aggiornamento evento {{event_name}}","body":"Ciao {{participant_name}}, l'evento {{event_name}} del {{date}} inizierà alle {{start}} nella sala {{room}}. Durata: {{duration_min}} minuti. Questa è una comunicazione demo.","data_status":"synthetic"},
+  {"id":"TPL-ROOM-CHANGE-EN","event_type":"room_change","language":"en","channel":"email","subject":"Event update: {{event_name}}","body":"Hi {{participant_name}}, {{event_name}} on {{date}} will start at {{start}} in room {{room}}. Duration: {{duration_min}} minutes. This is a demo notification.","data_status":"synthetic"}
+]

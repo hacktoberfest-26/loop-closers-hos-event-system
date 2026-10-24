@@ -1,0 +1,38 @@
+[
+  {
+    "id": "B3-201",
+    "building": "B3",
+    "floor": 2,
+    "capacity": 60,
+    "accessibility": true,
+    "equipment": ["projector", "hybrid-camera", "whiteboard"],
+    "status": "available"
+  },
+  {
+    "id": "B3-202",
+    "building": "B3",
+    "floor": 2,
+    "capacity": 120,
+    "accessibility": true,
+    "equipment": ["projector", "hybrid-camera", "stage", "whiteboard"],
+    "status": "available"
+  },
+  {
+    "id": "B3-203",
+    "building": "B3",
+    "floor": 2,
+    "capacity": 80,
+    "accessibility": false,
+    "equipment": ["projector", "sound-system", "whiteboard"],
+    "status": "available"
+  },
+  {
+    "id": "B2-104",
+    "building": "B2",
+    "floor": 1,
+    "capacity": 36,
+    "accessibility": true,
+    "equipment": ["whiteboard", "video-conference"],
+    "status": "available"
+  }
+]
