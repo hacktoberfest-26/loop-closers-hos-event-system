@@ -2,69 +2,92 @@
 
 ## Il pitch in 30 secondi
 
-Quando cambia un evento, il responsabile non deve più cercare informazioni in email, calendari e fogli diversi.
+H-OS è un assistente operativo per chi gestisce gli eventi.
 
-H-OS legge la richiesta, controlla la sala, evidenzia i conflitti, propone una soluzione e prepara le comunicazioni. La persona mantiene sempre l’ultima parola.
+Quando arriva un cambio di orario, la persona incolla il messaggio nella chat. H-OS capisce cosa è cambiato, controlla la sala, spiega il problema, propone una soluzione e prepara la comunicazione ai partecipanti.
+
+La persona approva sempre l’azione finale.
 
 ## Il problema
 
-Un cambio di orario può richiedere di:
+Un semplice cambio di orario obbliga spesso a passare tra email, calendario, fogli e messaggi per:
 
-- capire cosa è cambiato;
-- verificare se la sala è libera;
+- capire il nuovo orario;
+- verificare la sala;
 - trovare un’alternativa;
 - aggiornare la prenotazione;
 - avvisare i partecipanti;
-- lasciare una traccia della decisione.
+- ricordare chi ha deciso e perché.
 
-Oggi queste attività sono spesso separate e manuali.
+H-OS riunisce questi passaggi in una conversazione guidata.
 
-## Come funziona
+## Come si usa
 
-1. **Arriva una richiesta** in linguaggio naturale.
-2. **L’AI la interpreta** e la converte in dati verificabili: evento, data, orario e durata.
-3. **Il motore controlla i dati** delle prenotazioni e rileva eventuali sovrapposizioni.
-4. **Il sistema propone un’alternativa** compatibile con i vincoli della sala.
-5. **L’operatore approva o rifiuta** la modifica.
-6. **H-OS prepara le comunicazioni** e registra l’audit dell’operazione.
+### 1. Incolla il messaggio
 
-## Esempio
+Esempio:
 
-> “Il workshop AI #204 è spostato dalle 15:00 alle 17:30 del 31 ottobre. Dura 90 minuti.”
+> “Il workshop AI #204 è stato spostato dalle 15:00 alle 17:30 del 31 ottobre. La durata rimane di 90 minuti.”
 
-H-OS risponde:
+### 2. Leggi la risposta di H-OS
 
-- la sala B3-201 è occupata dalle 17:00 alle 19:00;
-- la sala B3-202 è disponibile;
-- la modifica richiede approvazione;
-- quattro partecipanti devono essere informati.
+H-OS mostra in modo diretto:
+
+- evento, data, ora e durata riconosciuti;
+- conflitto trovato nella sala B3-201;
+- evento che occupa lo stesso intervallo;
+- alternativa disponibile: B3-202;
+- motivazione e prossima azione.
+
+### 3. Approva la decisione
+
+Il sistema non modifica automaticamente la prenotazione. Il ruolo **Space Coordinator** può confermare o rifiutare la proposta.
+
+### 4. Avvisa le persone coinvolte
+
+Dopo l’approvazione, H-OS prepara un messaggio per i quattro partecipanti e permette di registrare un invio simulato.
+
+## Perché è una vertical slice di H-OS
+
+La demo attraversa tutto il ciclo operativo:
+
+**messaggio → interpretazione → controllo → decisione → comunicazione → audit**
+
+Il calendario resta sullo sfondo. In primo piano compare soltanto ciò che richiede attenzione.
 
 ## Dove serve l’AI
 
-L’AI riduce il lavoro di lettura e interpretazione. Non decide autonomamente la disponibilità, non inventa informazioni mancanti e non autorizza operazioni.
+L’AI interpreta il linguaggio naturale e lo trasforma in dati ordinati.
 
-I controlli su orari, conflitti, permessi e audit sono deterministici e verificabili.
+I controlli su disponibilità, sovrapposizioni, capacità, permessi e audit restano deterministici e verificabili.
+
+L’AI non inventa dati mancanti, non decide da sola e non autorizza operazioni.
 
 ## Privacy first
 
-- i dati della demo sono sintetici;
-- la chiave API non viene inserita nel frontend pubblico;
-- le comunicazioni sono solo simulate;
-- ogni modifica mostra chi deve approvarla e perché;
-- l’audit rende visibile la storia dell’operazione.
+- la demo usa dataset sintetici;
+- le chiavi API non sono nel frontend pubblico;
+- il testo originale resta nella demo locale;
+- prima dell’eventuale inferenza vengono minimizzati i dati non necessari;
+- le comunicazioni sono simulate;
+- ogni azione mostra ruolo, fonte e motivazione.
 
-## Cosa dimostra questa vertical slice
+## Demo per il team
 
-H-OS collega un’informazione non strutturata a una decisione operativa:
+1. Aprire la [demo pubblica](https://hacktoberfest-26.github.io/loop-closers-hos-event-system/).
+2. Lasciare il ruolo **Event Operations Manager**.
+3. Premere **Analizza messaggio**.
+4. Osservare il conflitto B3-201 e la proposta B3-202.
+5. Cambiare ruolo in **Space Coordinator**.
+6. Confermare la modifica.
+7. Preparare l’anteprima e registrare l’invio demo.
 
-**richiesta → dati → controllo → decisione → comunicazione → audit**
+## Cosa dimostra e cosa non dimostra
 
-Non è un calendario sostitutivo. È uno strumento di controllo che aiuta chi amministra a capire rapidamente cosa fare e perché.
+Dimostra un flusso completo e comprensibile per controllare una modifica evento.
+
+Non è ancora un calendario collegato a sistemi reali, non invia email reali e non dimostra un’integrazione LLM attiva nella versione GitHub Pages. Per il collegamento a dati e modelli reali servono backend sicuro, autenticazione e integrazioni autorizzate.
 
 ## Stato attuale
 
-La demo pubblica usa un dataset sintetico e un motore deterministico nel browser. Mostra il flusso completo senza esporre credenziali o dati reali.
-
-Demo: <https://hacktoberfest-26.github.io/loop-closers-hos-event-system/>
-
-Il collegamento a un modello LLM reale e ai sistemi operativi degli eventi richiede un backend sicuro e integrazioni autorizzate.
+La demo pubblica è una build statica con UI chatbot, dataset sintetici e motore deterministico nel browser. È pensata per rendere visibile il valore del prodotto prima di aggiungere integrazioni operative.
