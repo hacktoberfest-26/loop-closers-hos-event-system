@@ -16,6 +16,24 @@ class SliceTests(unittest.TestCase):
         self.assertEqual(state['pending']['suggested_room'], 'B3-202')
         self.assertEqual(state['pending']['change']['start'], '17:30')
 
+    def test_clear_scenario_resolves_italian_date_and_keeps_room(self):
+        notice = "Il Faculty Roundtable #209 è stato spostato dalle 14:00 alle 16:00 del 1 novembre. La durata rimane di 90 minuti."
+        state = self.engine.ingest('Event Operations Manager', notice)
+        self.assertEqual(state['pending']['change']['date'], '2026-11-01')
+        self.assertEqual(state['pending']['conflicts'], [])
+        final = self.engine.decide('Space Coordinator', True)
+        event = next(item for item in final['events'] if item['id'] == '209')
+        self.assertEqual(event['start'], '16:00')
+        self.assertEqual(event['room'], 'B3-202')
+
+    def test_no_alternative_scenario_blocks_approval(self):
+        state = self.engine.ingest('Event Operations Manager', app.DEFAULT_NOTICE, scenario_id='no-alternative')
+        self.assertEqual(state['pending']['conflicts'], ['205'])
+        self.assertIsNone(state['pending']['suggested_room'])
+        with self.assertRaises(ValueError):
+            self.engine.decide('Space Coordinator', True)
+        self.assertEqual(self.engine.events[0]['start'], '15:00')
+
     def test_requires_human_approval(self):
         self.engine.ingest('Event Operations Manager', app.DEFAULT_NOTICE)
         self.assertEqual(self.engine.events[0]['start'], '15:00')

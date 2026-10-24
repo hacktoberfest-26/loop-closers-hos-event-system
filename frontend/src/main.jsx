@@ -24,6 +24,62 @@ const demoScenario = {
   alternative: demoAlternative,
   participantCount: demoParticipants.length,
 }
+const clearEvent = eventsData.find(item => item.id === '209')
+const scenarios = [
+  {
+    id: 'room-conflict',
+    label: 'Conflitto con alternativa',
+    description: 'La sala è occupata, ma il sistema trova una soluzione.',
+    notice: demoNotice,
+    facts: [
+      ['Nuovo orario', `${demoScenario.event.date} · 17:30–19:00`],
+      ['Sala attuale', demoScenario.event.room],
+      ['Conflitto', `#${demoScenario.conflict.id} · ${demoScenario.booking.start}–${demoScenario.booking.end}`],
+      ['Alternativa', `${demoScenario.alternative.id} · ${demoScenario.alternative.capacity} posti`],
+      ['Partecipanti', `${demoScenario.participantCount} con consenso email`],
+    ],
+  },
+  {
+    id: 'room-clear',
+    label: 'Nessun conflitto',
+    description: 'Il nuovo orario è libero e la sala può restare la stessa.',
+    notice: `Il ${clearEvent.name} #${clearEvent.id} è stato spostato dalle 14:00 alle 16:00 del 1 novembre. La durata rimane di ${clearEvent.duration_min} minuti.`,
+    facts: [
+      ['Nuovo orario', `${clearEvent.date} · 16:00–17:30`],
+      ['Sala attuale', clearEvent.room],
+      ['Conflitto', 'Nessuno'],
+      ['Azione', 'Conferma stessa sala'],
+      ['Stato', 'Richiede approvazione'],
+    ],
+  },
+  {
+    id: 'human-review',
+    label: 'Richiesta incompleta',
+    description: 'Manca un orario verificabile: H-OS chiede una conferma.',
+    notice: 'Il workshop AI #204 è stato spostato più tardi il 31 ottobre. La durata rimane di 90 minuti.',
+    facts: [
+      ['Evento', 'AI Workshop #204'],
+      ['Nuovo orario', 'Non specificato'],
+      ['Sala', 'Da verificare'],
+      ['Esito', 'Revisione umana'],
+      ['Azione', 'Chiedi conferma'],
+    ],
+  },
+  {
+    id: 'no-alternative',
+    label: 'Conflitto senza alternativa',
+    description: 'Il conflitto esiste, ma nessuna sala soddisfa i vincoli.',
+    scenarioId: 'no-alternative',
+    notice: demoNotice,
+    facts: [
+      ['Nuovo orario', `${demoScenario.event.date} · 17:30–19:00`],
+      ['Sala attuale', demoScenario.event.room],
+      ['Conflitto', `#${demoScenario.conflict.id} · ${demoScenario.booking.start}–${demoScenario.booking.end}`],
+      ['Alternativa', 'Nessuna disponibile'],
+      ['Azione', 'Pianificazione manuale'],
+    ],
+  },
+]
 
 async function request(path, role, options = {}) {
   if (staticDemo) return staticRequest(path, role, options)
@@ -45,18 +101,13 @@ const initialMessages = [
 function Badge({ children, tone = 'neutral' }) { return <span className={`badge ${tone}`}>{children}</span> }
 function InfoRow({ label, value, tone = '' }) { return <div className="info-row"><span>{label}</span><strong className={tone}>{value}</strong></div> }
 
-function ScenarioCard({ onRun, busy }) {
+function ScenarioCard({ scenario, onChange, onRun, busy }) {
   return <section className="context-card scenario-card" aria-label="Scenario sintetico della demo">
     <div className="context-heading"><span>SCENARIO SINTETICO</span><Badge tone="blue">Dati demo</Badge></div>
-    <h2>{demoScenario.event.name} <span>#{demoScenario.event.id}</span></h2>
-    <p>Il caso già pronto per mostrare il flusso completo.</p>
-    <div className="scenario-grid">
-      <div><span>Nuovo orario</span><strong>{demoScenario.event.date} · 17:30–19:00</strong></div>
-      <div><span>Sala attuale</span><strong>{demoScenario.event.room}</strong></div>
-      <div><span>Conflitto</span><strong>#{demoScenario.conflict.id} · {demoScenario.booking.start}–{demoScenario.booking.end}</strong></div>
-      <div><span>Alternativa</span><strong>{demoScenario.alternative.id} · {demoScenario.alternative.capacity} posti</strong></div>
-      <div><span>Partecipanti</span><strong>{demoScenario.participantCount} con consenso email</strong></div>
-    </div>
+    <label className="scenario-select" htmlFor="scenario"><span>Scegli un percorso</span><select id="scenario" value={scenario.id} onChange={event => onChange(event.target.value)} disabled={busy}>{scenarios.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
+    <h2>{scenario.label}</h2>
+    <p>{scenario.description}</p>
+    <div className="scenario-grid">{scenario.facts.map(([label, value]) => <div key={label}><span>{label}</span><strong>{value}</strong></div>)}</div>
     <button className="scenario-button" type="button" onClick={onRun} disabled={busy}>Avvia simulazione <span aria-hidden="true">↗</span></button>
     <small className="scenario-note">La simulazione si ferma prima dell’approvazione umana.</small>
   </section>
@@ -84,6 +135,7 @@ function ResultBlock({ pending, role, busy, decide, communication, previewCommun
   }
 
   const conflict = pending.conflicts?.length > 0
+  const noAlternative = conflict && !pending.suggested_room
   const currentRoom = pending.original_room || pending.change?.room
   const proposedRoom = conflict ? pending.suggested_room : currentRoom
   const approved = pending.status === 'approved_and_applied_mock'
@@ -91,17 +143,18 @@ function ResultBlock({ pending, role, busy, decide, communication, previewCommun
   return <section className={`result-block ${conflict ? 'conflict-block' : 'clear-block'}`} aria-label="Risultato del controllo">
     <div className="result-heading"><span className="result-icon">{approved ? '✓' : conflict ? '!' : '✓'}</span><div><span className="result-label">{approved ? 'Modifica registrata nella demo' : conflict ? 'Conflitto rilevato' : 'Nessun conflitto rilevato'}</span><h2>{approved ? 'La nuova prenotazione è pronta.' : conflict ? 'La sala attuale è occupata.' : 'La sala può restare la stessa.'}</h2></div></div>
     {pending.change && <div className="extracted-data"><div><span>Evento</span><strong>#{pending.change.event_id}</strong></div><div><span>Data</span><strong>{pending.change.date}</strong></div><div><span>Ora</span><strong>{pending.change.start}</strong></div><div><span>Durata</span><strong>{pending.change.duration_min} min</strong></div></div>}
-    {conflict && <div className="result-callout"><strong>La sala {currentRoom} è già occupata dall’evento #{pending.conflicts.join(', #')}.</strong><span>Alternativa proposta: <b>{proposedRoom || 'nessuna sala disponibile'}</b>.</span></div>}
+    {conflict && <div className="result-callout"><strong>La sala {currentRoom} è già occupata dall’evento #{pending.conflicts.join(', #')}.</strong><span>{noAlternative ? 'Nessuna sala disponibile soddisfa i vincoli.' : <>Alternativa proposta: <b>{proposedRoom}</b>.</>}</span></div>}
     {!conflict && !approved && <div className="result-callout success"><strong>{currentRoom || 'La sala attuale'} è disponibile nel nuovo intervallo.</strong><span>Il coordinatore può confermare il cambio.</span></div>}
     {approved && <div className="result-callout success"><strong>La modifica mock è stata applicata a {proposedRoom}.</strong><span>Ora puoi preparare una comunicazione per i partecipanti.</span></div>}
 
-    {pending.status === 'approval_required' && <div className="result-actions"><p>La decisione resta umana: solo Space Coordinator può confermare.</p><div className="button-row"><button className="primary" onClick={() => decide(true)} disabled={busy || role !== 'Space Coordinator'}>Conferma modifica</button><button onClick={() => decide(false)} disabled={busy || role !== 'Space Coordinator'}>Rifiuta</button></div>{role !== 'Space Coordinator' && <small className="role-hint">Seleziona “Space Coordinator” in alto per decidere.</small>}</div>}
+    {pending.status === 'approval_required' && <div className="result-actions"><p>{noAlternative ? 'Serve una pianificazione manuale: non è possibile approvare in sicurezza.' : 'La decisione resta umana: solo Space Coordinator può confermare.'}</p><div className="button-row"><button className="primary" onClick={() => decide(true)} disabled={busy || role !== 'Space Coordinator' || noAlternative}>Conferma modifica</button><button onClick={() => decide(false)} disabled={busy || role !== 'Space Coordinator'}>Rifiuta</button></div>{role !== 'Space Coordinator' && <small className="role-hint">Seleziona “Space Coordinator” in alto per decidere.</small>}{noAlternative && role === 'Space Coordinator' && <small className="role-hint">Nessuna approvazione disponibile: aggiungi una sala o modifica i vincoli.</small>}</div>}
     {approved && <div className="result-actions"><div className="button-row"><button className="primary" onClick={previewCommunication} disabled={busy}>Prepara messaggio</button>{communication && <button onClick={sendCommunication} disabled={busy || role !== 'Space Coordinator'}>Registra invio demo</button>}</div>{role !== 'Space Coordinator' && <small className="role-hint">Per registrare l’invio devi essere Space Coordinator.</small>}{communication && <div className="message-preview"><div><span>Destinatari</span><strong>{communication.recipient_count} partecipanti</strong></div><div><span>Oggetto</span><strong>{communication.message.subject}</strong></div><p>{communication.message.body}</p><Badge tone={communication.status === 'mock_sent' ? 'green' : 'blue'}>{communication.status === 'mock_sent' ? 'Invio registrato' : 'Anteprima'}</Badge></div>}</div>}
   </section>
 }
 
 function App() {
   const [role, setRole] = useState(roles[0])
+  const [selectedScenarioId, setSelectedScenarioId] = useState(scenarios[0].id)
   const [notice, setNotice] = useState(demoNotice)
   const [health, setHealth] = useState({ mode: 'baseline' })
   const [quality, setQuality] = useState({ status: 'unknown' })
@@ -115,10 +168,12 @@ function App() {
   const [feedback, setFeedback] = useState('')
   const [error, setError] = useState('')
 
+  const selectedScenario = scenarios.find(item => item.id === selectedScenarioId) || scenarios[0]
   const pending = result?.pending ?? state.pending
+  const needsManualPlan = pending?.status === 'approval_required' && pending.conflicts?.length > 0 && !pending.suggested_room
   const modelLabel = health.mode === 'google' ? 'Gemma 4 · Google API' : health.mode === 'backboard' ? 'Gemma 4 · modello online' : health.mode === 'gemma' ? 'Gemma 4 · modello locale' : 'Simulazione controllata'
-  const stateLabel = pending?.status === 'human_review' ? 'Revisione richiesta' : pending?.status === 'approval_required' ? 'Decisione richiesta' : pending?.status === 'approved_and_applied_mock' ? 'Completato' : 'In attesa di un messaggio'
-  const stateTone = pending?.status === 'human_review' ? 'amber' : pending?.status === 'approval_required' ? 'blue' : pending?.status === 'approved_and_applied_mock' ? 'green' : 'neutral'
+  const stateLabel = pending?.status === 'human_review' ? 'Revisione richiesta' : needsManualPlan ? 'Pianificazione richiesta' : pending?.status === 'approval_required' ? 'Decisione richiesta' : pending?.status === 'approved_and_applied_mock' ? 'Completato' : 'In attesa di un messaggio'
+  const stateTone = pending?.status === 'human_review' || needsManualPlan ? 'amber' : pending?.status === 'approval_required' ? 'blue' : pending?.status === 'approved_and_applied_mock' ? 'green' : 'neutral'
 
   async function refresh() {
     try {
@@ -132,15 +187,33 @@ function App() {
     try { setDatasetRows((await request(`datasets/${name}`, role)).items); setError('') } catch (e) { setError(e.message) }
   }
 
+  async function resetEngine(actorRole = role) {
+    const data = await request('reset', actorRole, { method: 'POST', body: JSON.stringify({}) })
+    setResult(data); setState(data); setCommunication(null); setMessages(initialMessages)
+    return data
+  }
+
+  async function chooseScenario(id) {
+    const next = scenarios.find(item => item.id === id) || scenarios[0]
+    setBusy(true); setFeedback(''); setError('')
+    try {
+      await resetEngine(role)
+      setSelectedScenarioId(next.id); setNotice(next.notice); setFeedback('Scenario pronto')
+    } catch (e) { setError(e.message) } finally { setBusy(false) }
+  }
+
   async function analyseNotice(submitted, actorRole = role) {
     if (!submitted) return
     setBusy(true); setFeedback(''); setError('')
     try {
-      const data = await request('ingest', actorRole, { method: 'POST', body: JSON.stringify({ notice: submitted }) })
+      const scenarioId = selectedScenarioId === 'no-alternative' ? 'no-alternative' : undefined
+      const data = await request('ingest', actorRole, { method: 'POST', body: JSON.stringify({ notice: submitted, scenario_id: scenarioId }) })
       setResult(data); setState(data)
       const next = data.pending?.status === 'human_review'
         ? { text: 'Ho bisogno di una verifica umana prima di procedere.', detail: data.pending.reason }
-        : data.pending?.conflicts?.length
+        : data.pending?.conflicts?.length && !data.pending?.suggested_room
+          ? { text: 'Ho trovato un conflitto, ma nessuna sala rispetta i vincoli.', detail: 'Serve una pianificazione manuale prima di poter approvare.' }
+          : data.pending?.conflicts?.length
           ? { text: 'Ho trovato un conflitto di sala e una possibile alternativa.', detail: `La sala ${data.pending.original_room} è occupata. Controlla il risultato qui sotto.` }
           : { text: 'Ho controllato il nuovo orario: non risultano conflitti.', detail: 'La sala attuale può restare la stessa, ma la modifica richiede comunque approvazione.' }
       setMessages(previous => [...previous, { id: `user-${Date.now()}`, actor: 'user', text: submitted }, { id: `assistant-${Date.now()}`, actor: 'assistant', ...next }])
@@ -155,8 +228,9 @@ function App() {
 
   async function runSimulation() {
     setRole(roles[0])
-    setNotice(demoNotice)
-    await analyseNotice(demoNotice, roles[0])
+    setNotice(selectedScenario.notice)
+    await resetEngine(roles[0])
+    await analyseNotice(selectedScenario.notice, roles[0])
   }
 
   async function decide(approve) {
@@ -184,8 +258,8 @@ function App() {
   async function resetDemo() {
     setBusy(true); setFeedback(''); setError('')
     try {
-      const data = await request('reset', role, { method: 'POST', body: JSON.stringify({}) })
-      setRole(roles[0]); setResult(data); setState(data); setCommunication(null); setNotice(demoNotice); setMessages(initialMessages); setFeedback('Nuova sessione pronta')
+      const data = await resetEngine(role)
+      setRole(roles[0]); setSelectedScenarioId(scenarios[0].id); setResult(data); setState(data); setNotice(scenarios[0].notice); setFeedback('Nuova sessione pronta')
     } catch (e) { setError(e.message) } finally { setBusy(false) }
   }
 
@@ -210,8 +284,8 @@ function App() {
         </section>
 
         <aside className="context-panel" aria-label="Contesto operativo">
-          <section className="context-card status-card"><div className="context-heading"><span>STATO</span><Badge tone={stateTone}>{stateLabel}</Badge></div><h2>{pending?.status === 'approval_required' ? 'Una decisione ti aspetta.' : pending?.status === 'approved_and_applied_mock' ? 'Tutto pronto.' : 'Sono pronto ad aiutarti.'}</h2><p>{pending?.status === 'approval_required' ? 'Controlla il conflitto e scegli se confermare la modifica.' : pending?.status === 'approved_and_applied_mock' ? 'La modifica è stata registrata. Puoi avvisare i partecipanti.' : 'Parti da un messaggio ricevuto: il calendario resta sullo sfondo.'}</p></section>
-          <ScenarioCard onRun={runSimulation} busy={busy} />
+          <section className="context-card status-card"><div className="context-heading"><span>STATO</span><Badge tone={stateTone}>{stateLabel}</Badge></div><h2>{needsManualPlan ? 'Serve una soluzione.' : pending?.status === 'approval_required' ? 'Una decisione ti aspetta.' : pending?.status === 'approved_and_applied_mock' ? 'Tutto pronto.' : 'Sono pronto ad aiutarti.'}</h2><p>{needsManualPlan ? 'Nessuna sala disponibile: il caso passa alla pianificazione manuale.' : pending?.status === 'approval_required' ? 'Controlla il conflitto e scegli se confermare la modifica.' : pending?.status === 'approved_and_applied_mock' ? 'La modifica è stata registrata. Puoi avvisare i partecipanti.' : 'Parti da un messaggio ricevuto: il calendario resta sullo sfondo.'}</p></section>
+          <ScenarioCard scenario={selectedScenario} onChange={chooseScenario} onRun={runSimulation} busy={busy} />
           <section className="context-card"><div className="context-heading"><span>CONTROLLO</span><span className="check-status"><i /> {quality.status === 'pass' ? 'Dati verificati' : 'In attesa'}</span></div><InfoRow label="Eventi nel catalogo" value={state.events?.length || '—'} /><InfoRow label="Fonti ricevute" value={state.source_count || 0} /><InfoRow label="Modifiche aperte" value={pending?.status === 'approval_required' ? 1 : 0} tone={pending?.status === 'approval_required' ? 'accent' : ''} /></section>
           <details className="context-card details-card"><summary>Privacy e traccia</summary><div className="details-content"><p>Le informazioni vengono usate solo per verificare il cambio. Il modello non autorizza azioni e le comunicazioni sono simulate.</p>{pending?.privacy && <div className="privacy-list"><InfoRow label="Elementi rimossi" value={pending.privacy.redactions} /><InfoRow label="Fonte originale" value="Conservata localmente" /></div>}{state.audit?.length > 0 && <div className="audit-list"><span className="overline">ULTIME ATTIVITÀ</span>{state.audit.slice(-3).reverse().map((entry, index) => <div className="audit-item" key={`${entry.action}-${index}`}><i /><span>{entry.action.replaceAll('_', ' ')}</span></div>)}</div>}</div></details>
           <details className="context-card details-card"><summary>Dati della demo</summary><div className="details-content"><label className="dataset-label" htmlFor="dataset">Dataset</label><select id="dataset" value={selectedDataset} onChange={event => loadDataset(event.target.value)}>{datasets.map(name => <option key={name}>{name}</option>)}</select><div className="table-wrap"><table><caption className="sr-only">Prime righe del dataset {selectedDataset}</caption><thead><tr>{datasetRows[0] && Object.keys(datasetRows[0]).slice(0, 3).map(key => <th scope="col" key={key}>{key.replaceAll('_', ' ')}</th>)}</tr></thead><tbody>{datasetRows.slice(0, 4).map((row, index) => <tr key={index}>{Object.keys(datasetRows[0] || {}).slice(0, 3).map(key => <td key={key}>{String(row[key] ?? '—')}</td>)}</tr>)}</tbody></table></div></div></details>

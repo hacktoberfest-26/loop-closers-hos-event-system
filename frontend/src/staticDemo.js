@@ -57,7 +57,7 @@ function extract(text) {
   const moved = /\b(?:spostat[oa]|posticipat[oa]|rescheduled|moved)\b/i.test(text)
   const negated = /\b(?:non\s+(?:è\s+stato\s+)?spostat[oa]|not\s+(?:been\s+)?rescheduled|not\s+moved)\b/i.test(text)
   if (!eventMatch || !timeMatch || !moved || negated) throw new Error('Not enough evidence to parse this change. Human review required.')
-  const event = seedDatasets.events.find(item => item.id === eventMatch[1])
+  const event = seedDatasets.events.find(item => String(item.id) === String(eventMatch[1]))
   if (!event) throw new Error('Unknown event, conflicting date or invalid time')
   const durationMatch = text.match(/\b(\d{1,3})\s*(?:minuti|minutes)\b/i)
   return {
@@ -119,15 +119,15 @@ function snapshot(role) {
   return result
 }
 
-function analyse(role, text) {
+function analyse(role, text, scenarioId = null) {
   if (role !== roles.ingest) throw new Error('Only the Event Operations Manager can submit an update')
   if (typeof text !== 'string' || text.length < 15 || text.length > 3000) throw new Error('Notice must be 15–3000 characters')
   const sourceId = `notice-${engine.sources.length + 1}`
   engine.sources.push({ id: sourceId, sha256_prefix: 'static-demo', text })
   try {
     const change = extract(text)
-    const event = engine.events.find(item => item.id === change.event_id)
-    if (!event || change.date !== event.date || !text.includes(change.start)) throw new Error('Missing evidence of the proposed new start time')
+    const event = engine.events.find(item => String(item.id) === String(change.event_id))
+    if (!event || String(change.date).trim() !== String(event.date).trim() || !text.includes(change.start)) throw new Error('Missing evidence of the proposed new start time')
     const overlapping = conflicts(engine.events, event.id, change.date, change.start, change.duration_min, event.room)
     const alternatives = rooms.filter(room => {
       const fits = room.id !== event.room && room.status === 'available' && Number(room.capacity) >= Number(event.attendance_expected || 0)
@@ -138,6 +138,7 @@ function analyse(role, text) {
         overlaps(from, to, minute(window.start), minute(window.end)))
       return fits && !maintenance && !conflicts(engine.events, event.id, change.date, change.start, change.duration_min, room.id).length
     }).map(room => room.id)
+    if (scenarioId === 'no-alternative') alternatives.length = 0
     engine.pending = {
       status: 'approval_required',
       change,
@@ -222,7 +223,7 @@ export function staticRequest(path, role, options = {}) {
     const rows = name === 'events' ? engine.events : name === 'bookings' ? engine.bookings : seedDatasets[name]
     return { name, items: clone(rows) }
   }
-  if (method === 'POST' && path === 'ingest') return analyse(role, body.notice)
+  if (method === 'POST' && path === 'ingest') return analyse(role, body.notice, body.scenario_id)
   if (method === 'POST' && path === 'decide') return decide(role, body.approve)
   if (method === 'POST' && path === 'communications/preview') return communication(role, body.event_id)
   if (method === 'POST' && path === 'communications/send') return communication(role, body.event_id, true)

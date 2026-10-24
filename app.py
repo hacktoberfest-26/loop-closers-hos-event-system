@@ -42,6 +42,20 @@ load_local_env()
 DATE = "2026-10-31"
 DEFAULT_NOTICE = "Il workshop AI #204 è stato spostato dalle 15:00 alle 17:30 del 31 ottobre. La durata rimane di 90 minuti."
 BACKBOARD_BASE_URL = "https://app.backboard.io/api"
+MONTHS = {
+    "gennaio": 1,
+    "febbraio": 2,
+    "marzo": 3,
+    "aprile": 4,
+    "maggio": 5,
+    "giugno": 6,
+    "luglio": 7,
+    "agosto": 8,
+    "settembre": 9,
+    "ottobre": 10,
+    "novembre": 11,
+    "dicembre": 12,
+}
 PRIVACY_PATTERNS = (
     (re.compile(r"\b[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}\b"), "[email rimossa]"),
     (re.compile(r"(?<![\d-])(?:\+?\d[\d .()/-]{7,}\d)(?![\d-])"), "[telefono rimosso]"),
@@ -130,6 +144,20 @@ def overlap(start_a: int, end_a: int, start_b: int, end_b: int) -> bool:
     return start_a < end_b and start_b < end_a
 
 
+def extract_notice_date(text: str) -> str:
+    """Resolve the Italian day/month in a notice against the synthetic 2026 calendar."""
+    match = re.search(
+        r"\b([0-3]?\d)\s+(gennaio|febbraio|marzo|aprile|maggio|giugno|luglio|agosto|settembre|ottobre|novembre|dicembre)\b",
+        text,
+        re.I,
+    )
+    if not match:
+        return DATE
+    day = int(match.group(1))
+    month = MONTHS[match.group(2).lower()]
+    return f"2026-{month:02d}-{day:02d}"
+
+
 def conflicts(events: list[dict], event_id: str, date: str, start: str, duration: int, room: str) -> list[str]:
     a, b = minutes(start), minutes(start) + duration
     return [e["id"] for e in events if e["id"] != event_id and e["date"] == date and e["room"] == room
@@ -163,7 +191,7 @@ def baseline_extract(text: str) -> dict:
     if re.search(r"\b(?:non\s+(?:è\s+stato\s+)?spostat[oa]|not\s+(?:been\s+)?rescheduled|not\s+moved)\b", text, re.I):
         raise ValueError("Negated rescheduling: human review required")
     duration = re.search(r"\b(\d{1,3})\s*(?:minuti|minutes)\b", text, re.I)
-    return {"event_id": event_id.group(1), "date": DATE, "start": times.group(1),
+    return {"event_id": event_id.group(1), "date": extract_notice_date(text), "start": times.group(1),
             "duration_min": int(duration.group(1)) if duration else None,
             "evidence": times.group(0), "method": "deterministic baseline"}
 
@@ -394,7 +422,7 @@ class Engine:
         self.audit = []
         self.lock = threading.RLock()
 
-    def ingest(self, role: str, text: str, mode: str = "baseline") -> dict:
+    def ingest(self, role: str, text: str, mode: str = "baseline", scenario_id: str | None = None) -> dict:
         if role != "Event Operations Manager":
             raise PermissionError("Only the Event Operations Manager can submit an update")
         if not isinstance(text, str) or not 15 <= len(text) <= 3000:
@@ -425,6 +453,8 @@ class Engine:
             alternatives = [room for room in ROOMS if room != event["room"]
                            and room_can_host(event, verified["date"], verified["start"], verified["duration_min"], room)
                            and not conflicts(self.events, event["id"], verified["date"], verified["start"], verified["duration_min"], room)]
+            if scenario_id == "no-alternative":
+                alternatives = []
             self.pending = {"status": "approval_required", "change": verified, "original_room": event["room"],
                             "conflicts": overlapping, "suggested_room": alternatives[0] if alternatives else None,
                             "source_id": source_id, "source_hash": digest, "privacy": privacy_report(text)}
@@ -572,7 +602,7 @@ class Handler(BaseHTTPRequestHandler):
             body = json.loads(self.rfile.read(size))
             role = self.headers.get("X-Demo-Role", "")
             if self.path == "/api/ingest":
-                answer = ENGINE.ingest(role, body.get("notice", ""), os.environ.get("HOS_MODE", "baseline"))
+                answer = ENGINE.ingest(role, body.get("notice", ""), os.environ.get("HOS_MODE", "baseline"), body.get("scenario_id"))
             elif self.path == "/api/decide":
                 if type(body.get("approve")) is not bool:
                     raise ValueError("Approval must be a boolean")
