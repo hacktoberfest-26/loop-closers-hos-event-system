@@ -1,10 +1,12 @@
-# H-OS Event System
+# H-OS / Event Coordinator
 
 ## Il pitch in 30 secondi
 
-H-OS è un assistente operativo per chi gestisce gli eventi.
+H-OS è il sistema integrale per collegare informazioni, decisioni e operazioni dell’organizzazione.
 
-Quando arriva un cambio di orario, la persona incolla il messaggio nella chat. H-OS capisce cosa è cambiato, controlla la sala, spiega il problema, propone una soluzione e prepara la comunicazione ai partecipanti.
+**Event Coordinator** è la sua prima vertical slice: un assistente operativo per chi gestisce gli eventi.
+
+Quando arriva un cambio di orario, la persona incolla il messaggio nella chat. Event Coordinator capisce cosa è cambiato, controlla la sala, spiega il problema, propone una soluzione e prepara la comunicazione ai partecipanti.
 
 La persona approva sempre l’azione finale.
 
@@ -19,7 +21,7 @@ Un semplice cambio di orario obbliga spesso a passare tra email, calendario, fog
 - avvisare i partecipanti;
 - ricordare chi ha deciso e perché.
 
-H-OS riunisce questi passaggi in una conversazione guidata.
+Event Coordinator riunisce questi passaggi in una conversazione guidata. H-OS è il sistema più ampio che potrà estendere lo stesso modello ad altri processi organizzativi.
 
 ## Come si usa
 
@@ -29,9 +31,9 @@ Esempio:
 
 > “Il workshop AI #204 è stato spostato dalle 15:00 alle 17:30 del 31 ottobre. La durata rimane di 90 minuti.”
 
-### 2. Leggi la risposta di H-OS
+### 2. Leggi la risposta di Event Coordinator
 
-H-OS mostra in modo diretto:
+Event Coordinator mostra in modo diretto:
 
 - evento, data, ora e durata riconosciuti;
 - conflitto trovato nella sala B3-201;
@@ -45,13 +47,15 @@ Il sistema non modifica automaticamente la prenotazione. Il ruolo **Space Coordi
 
 ### 4. Avvisa le persone coinvolte
 
-Dopo l’approvazione, H-OS prepara un messaggio per i quattro partecipanti e permette di registrare un invio simulato.
+Dopo l’approvazione, Event Coordinator prepara un messaggio per i quattro partecipanti e permette di registrare un invio simulato.
 
-## Perché è una vertical slice di H-OS
+## Il rapporto tra H-OS ed Event Coordinator
 
-La demo attraversa tutto il ciclo operativo:
+H-OS è il sistema integrale. Event Coordinator dimostra un solo percorso concreto al suo interno:
 
 **messaggio → interpretazione → controllo → decisione → comunicazione → audit**
+
+La demo attraversa quindi tutto il ciclo operativo senza pretendere di implementare l’intero H-OS.
 
 Il calendario resta sullo sfondo. In primo piano compare soltanto ciò che richiede attenzione.
 

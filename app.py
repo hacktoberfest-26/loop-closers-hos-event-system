@@ -1,4 +1,4 @@
-"""H-OS Event Change Control: minimal synthetic-only demonstration.
+"""H-OS Event Coordinator: minimal synthetic-only vertical slice.
 
 Python 3.10+, no third-party dependencies. Run python3 app.py.
 Set HOS_MODE=google for direct Google Gemma 4 inference; default baseline is NOT an AI demo.
@@ -505,9 +505,9 @@ class Engine:
 
 ENGINE = Engine()
 
-HTML = """<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>H-OS — Event Change Control</title>
+HTML = """<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>H-OS — Event Coordinator</title>
 <style>body{margin:0;background:#f6f8f6;color:#15211c;font:15px/1.5 system-ui,Arial}main{max-width:1100px;margin:auto;padding:40px 22px}header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #d6ded9;margin-bottom:24px}h1{font-size:34px;margin:0}h2{font-size:18px;margin:0 0 12px}small,.muted{color:#66736e}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.panel{background:white;border:1px solid #dbe3de;border-radius:15px;padding:22px;margin-bottom:18px}textarea{font:inherit;box-sizing:border-box;width:100%;min-height:110px;border:1px solid #cbd5ce;border-radius:8px;padding:12px}select,button{font:inherit;border-radius:8px;padding:10px 14px;border:1px solid #9da9a2;background:white;cursor:pointer}button.primary{background:#2ca879;color:#092a20;border-color:#2ca879;font-weight:650}button:disabled{opacity:.5}pre{overflow:auto;white-space:pre-wrap;word-break:break-word;background:#f5f8f5;border-radius:8px;padding:13px}.bad{color:#b34141}.good{color:#177b57}.tags{display:flex;gap:6px;flex-wrap:wrap}span.tag{background:#ddf7ea;border-radius:20px;padding:2px 9px}#message{min-height:24px}@media(max-width:750px){.grid{grid-template-columns:1fr}header{display:block}}</style>
-<main><header><div><small>LOOP CLOSERS · H-FARM HACKTOBERFEST · VERTICAL SLICE H-OS</small><h1>H-OS / Event Change Control</h1><p class="muted">Un messaggio → dati strutturati → impatto → decisione autorizzata.</p></div><label>Demo role<br><select id="role"><option>Event Operations Manager</option><option>Space Coordinator</option><option>Administrator</option></select></label></header>
+<main><header><div><small>H-OS · SISTEMA INTEGRALE · VERTICAL SLICE</small><h1>H-OS / Event Coordinator</h1><p class="muted">Un messaggio → dati strutturati → impatto → decisione autorizzata.</p></div><label>Demo role<br><select id="role"><option>Event Operations Manager</option><option>Space Coordinator</option><option>Administrator</option></select></label></header>
 <div class="grid"><section class="panel"><h2>01 — Source / Librarian + Gemma 4</h2><p class="muted">L’LLM trasforma il messaggio in evento, giorno, ora e durata. Il motore locale decide conflitti e permessi.</p><p class="muted">Email e telefoni vengono rimossi prima dell’eventuale chiamata al modello; la fonte originale resta nella demo.</p><textarea id="notice">Il workshop AI #204 è stato spostato dalle 15:00 alle 17:30 del 31 ottobre. La durata rimane di 90 minuti.</textarea><p>Extraction mode: <strong id="mode"></strong></p><button class="primary" id="analyse">Analyse event update</button></section>
 <section class="panel"><h2>02 — Brain / Ontology</h2><p class="muted">Objects: Event, Room, Booking. Relations: Event → reserves → Room.</p><div id="events"></div></section></div>
 <div class="grid"><section class="panel"><h2>03 — Agent / Impact analysis</h2><div id="impact"><p class="muted">No event change analysed.</p></div></section><section class="panel"><h2>04 — Policy / Actions</h2><div id="actions"><p class="muted">No pending actions.</p></div><p class="muted">Approval changes a mock booking only. Role selection is not production authentication.</p></section></div>
@@ -599,7 +599,7 @@ if __name__ == "__main__":
         if exc.errno == 48:
             raise SystemExit(f"Port {port} is already in use. Stop the existing app or run HOS_PORT=8767 python3 app.py") from exc
         raise
-    print(f"H-OS Event Change Control → http://127.0.0.1:{port} | synthetic data only")
+    print(f"H-OS Event Coordinator → http://127.0.0.1:{port} | synthetic data only")
     mode = os.environ.get("HOS_MODE", "baseline")
     note = "real model" if mode in {"google", "backboard", "gemma"} else "local simulation / deterministic"
     print("Extraction:", mode, f"({note})")

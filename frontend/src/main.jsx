@@ -21,7 +21,7 @@ const initialMessages = [
   {
     id: 'welcome',
     actor: 'assistant',
-    text: 'Ciao, sono H-OS. Incolla qui una comunicazione su un cambio di evento e ti dirò cosa controllare, perché e quale decisione serve.',
+    text: 'Ciao, sono Event Coordinator, la vertical slice operativa di H-OS. Incolla qui una comunicazione su un cambio di evento e ti dirò cosa controllare, perché e quale decisione serve.',
     detail: 'Non modifico prenotazioni reali. Ogni azione resta una simulazione verificabile.',
   },
 ]
@@ -152,16 +152,16 @@ function App() {
   return <div className="app-shell">
     <a className="skip-link" href="#main-content">Salta al contenuto principale</a>
     <header className="app-header">
-      <a className="brand" href="#main-content" aria-label="H-OS Controllo eventi"><span className="brand-mark"><img src={asset('hos-mark.svg')} alt="" aria-hidden="true" /></span><span>H-OS</span><span className="brand-divider">/</span><span className="brand-product">Controllo eventi</span></a>
+      <a className="brand" href="#main-content" aria-label="H-OS Event Coordinator"><span className="brand-mark"><img src={asset('hos-mark.svg')} alt="" aria-hidden="true" /></span><span>H-OS</span><span className="brand-divider">/</span><span className="brand-product">Event Coordinator</span></a>
       <div className="header-actions"><span className="live-status"><i /> Demo attiva</span><label className="role-picker"><span>Ruolo</span><select value={role} onChange={event => setRole(event.target.value)} aria-label="Ruolo operativo">{roles.map(item => <option key={item}>{item}</option>)}</select></label><button className="quiet-button" type="button" onClick={resetDemo} disabled={busy}>Nuova sessione</button></div>
     </header>
 
     <main id="main-content" className="app-main">
-      <section className="product-intro"><div><span className="eyebrow">ASSISTENTE OPERATIVO</span><h1>Capisci cosa fare.<br /><em>In pochi secondi.</em></h1><p>Incolla un cambio di evento. H-OS legge il messaggio, controlla la sala e ti accompagna fino alla decisione.</p></div><div className="intro-note"><Badge tone="green">Privacy first</Badge><span>Dati sintetici · nessuna prenotazione reale</span></div></section>
+      <section className="product-intro"><div><span className="eyebrow">H-OS · VERTICAL SLICE</span><h1>Event Coordinator.<br /><em>Capisci cosa fare.</em></h1><p>Una vertical slice di H-OS: incolla un cambio di evento, controlla la sala e arriva alla decisione in pochi secondi.</p></div><div className="intro-note"><Badge tone="green">Privacy first</Badge><span>Dati sintetici · nessuna prenotazione reale</span></div></section>
 
       <div className="workspace-grid">
-        <section className="chat-panel" aria-label="Conversazione con H-OS">
-          <div className="chat-header"><div><span className="overline">CONVERSAZIONE</span><h2>Controllo cambio evento</h2></div><Badge tone={health.mode === 'baseline' ? 'neutral' : 'blue'}>{modelLabel}</Badge></div>
+        <section className="chat-panel" aria-label="Conversazione con Event Coordinator">
+          <div className="chat-header"><div><span className="overline">EVENT COORDINATOR</span><h2>Controllo cambio evento</h2></div><Badge tone={health.mode === 'baseline' ? 'neutral' : 'blue'}>{modelLabel}</Badge></div>
           <div className="conversation" aria-live="polite">{messages.map(message => <ChatMessage key={message.id} message={message} />)}<ResultBlock pending={pending} role={role} busy={busy} decide={decide} communication={communication} previewCommunication={previewCommunication} sendCommunication={sendCommunication} /></div>
           <form className="composer" onSubmit={analyse}><label htmlFor="notice">Nuovo messaggio</label><textarea id="notice" value={notice} onChange={event => setNotice(event.target.value)} placeholder="Incolla qui la comunicazione ricevuta…" rows="4" /><div className="composer-footer"><span><span className="lock-dot">⌁</span> Il testo resta nella demo e viene minimizzato prima dell’analisi.</span><button className="primary send-button" type="submit" disabled={busy || role !== roles[0]}>{busy ? 'Analisi…' : 'Analizza messaggio'} <span aria-hidden="true">↗</span></button></div>{role !== roles[0] && <small className="role-hint">Per inviare una richiesta scegli “Event Operations Manager”.</small>}</form>
           <div className="quick-start"><span>Non hai un messaggio?</span><button type="button" onClick={() => setNotice(demoNotice)}>Usa l’esempio della demo</button></div>
@@ -176,7 +176,7 @@ function App() {
       </div>
 
       {(feedback || error) && <div className={`feedback ${error ? 'error' : ''}`} role={error ? 'alert' : 'status'} aria-live="polite">{error || feedback}</div>}
-      <footer><span>H-OS</span> Controllo eventi <i>·</i> Demo sintetica <i>·</i> Decisioni sempre umane</footer>
+      <footer><span>H-OS</span> / Event Coordinator <i>·</i> Demo sintetica <i>·</i> Decisioni sempre umane</footer>
     </main>
   </div>
 }
