@@ -11,6 +11,8 @@
   <a href="#validation-strategy">Validation</a>
   &nbsp;&middot;&nbsp;
   <a href="docs/H-OS_Canonical_Project.pdf">Project brief</a>
+  &nbsp;&middot;&nbsp;
+  <a href="README.it.md">Italiano</a>
 </p>
 
 ---
