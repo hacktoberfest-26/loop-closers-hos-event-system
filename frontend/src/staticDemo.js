@@ -1,17 +1,4 @@
-import eventsSeed from '../../data/events.json'
-import rooms from '../../data/rooms.json'
-import bookingsSeed from '../../data/bookings.json'
-import resources from '../../data/resources.json'
-import changeRequests from '../../data/change_requests.json'
-import buildings from '../../data/buildings.json'
-import venueProfiles from '../../data/venue_profiles.json'
-import organizations from '../../data/organizations.json'
-import people from '../../data/people.json'
-import participants from '../../data/participants.json'
-import notificationTemplates from '../../data/notification_templates.json'
-import maintenanceWindows from '../../data/maintenance_windows.json'
-import policies from '../../data/policies.json'
-import sourceMessages from '../../data/source_messages.json'
+import { events as eventsSeed, rooms, bookings as bookingsSeed, resources, changeRequests, buildings, venueProfiles, organizations, people, participants, notificationTemplates, maintenanceWindows, policies, sourceMessages, auditLog } from './publicDemoData'
 
 const DATE = '2026-10-31'
 const roles = {
@@ -34,9 +21,17 @@ const seedDatasets = {
   maintenance_windows: maintenanceWindows,
   policies,
   source_messages: sourceMessages,
+  audit_log: auditLog,
 }
 
 const clone = value => JSON.parse(JSON.stringify(value))
+const publicChange = change => change ? Object.fromEntries(['event_id', 'date', 'start', 'duration_min', 'method'].filter(field => field in change).map(field => [field, change[field]])) : undefined
+const publicPending = pending => {
+  if (!pending) return null
+  const safe = Object.fromEntries(['status', 'reason', 'original_room', 'conflicts', 'suggested_room', 'source_id', 'source_hash', 'privacy'].filter(field => field in pending).map(field => [field, clone(pending[field])]))
+  if (pending.change) safe.change = publicChange(pending.change)
+  return safe
+}
 const minute = clock => Number(clock.slice(0, 2)) * 60 + Number(clock.slice(3))
 const overlaps = (aStart, aEnd, bStart, bEnd) => aStart < bEnd && bStart < aEnd
 
@@ -108,13 +103,13 @@ function snapshot(role) {
     events: clone(engine.events),
     bookings: clone(engine.bookings),
     notifications: clone(engine.notifications),
-    pending: clone(engine.pending),
+    pending: publicPending(engine.pending),
     source_count: engine.sources.length,
     data_quality: { status: 'pass', row_count: Object.values(seedDatasets).reduce((sum, rows) => sum + rows.length, 0) },
   }
   if (role === 'Administrator') {
     result.audit = clone(engine.audit)
-    result.sources = clone(engine.sources)
+    result.sources = engine.sources.map(source => ({ id: source.id, sha256_prefix: source.sha256_prefix, text_length: source.text.length }))
   }
   return result
 }
@@ -194,7 +189,7 @@ function communication(role, eventId, send = false) {
   const preview = {
     event: clone(event),
     recipient_count: recipients.length,
-    recipients: clone(recipients),
+    recipients: recipients.map(item => ({ id: item.id, event_id: item.event_id, language: item.language, attendance: item.attendance, consent_email: item.consent_email })),
     channel: 'email',
     status: send ? 'mock_sent' : 'preview',
     message: {

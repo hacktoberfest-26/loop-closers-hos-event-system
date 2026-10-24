@@ -134,6 +134,53 @@ DATA_QUALITY = build_quality_report(DATASETS)
 EVENT_INDEX = normalized_event_index(BASE_EVENTS)
 ROOM_BY_ID = {room["id"]: room for room in ROOM_RECORDS}
 
+# API responses intentionally expose only the fields needed by the demo. Raw
+# contact details, source text, routing channels and provenance URLs stay local.
+PUBLIC_DATASET_FIELDS = {
+    "events": ("id", "name", "date", "start", "duration_min", "room", "format", "attendance_expected", "status", "venue_id"),
+    "rooms": ("id", "building", "floor", "capacity", "accessibility", "equipment", "status"),
+    "bookings": ("id", "event_id", "room", "date", "start", "end", "status"),
+    "resources": ("id", "name", "quantity", "available"),
+    "change_requests": ("id", "channel", "language", "event_id", "gold_outcome"),
+    "buildings": ("id", "name", "category", "campus_zone", "capacity_note", "confidence"),
+    "venue_profiles": ("venue_id", "venue_name", "event_types", "capacity_range", "requirements"),
+    "organizations": ("id", "name", "type"),
+    "people": ("id", "role", "organization_id", "can_ingest", "can_approve", "can_view_audit"),
+    "participants": ("id", "event_id", "language", "attendance", "consent_email"),
+    "notification_templates": ("id", "event_type", "language", "channel", "subject", "body"),
+    "maintenance_windows": ("id", "date", "start", "end", "building_id", "reason", "blocks_event"),
+    "policies": ("id", "name", "scope", "rule", "on_violation"),
+    "source_messages": ("id", "channel", "language", "event_id", "expected_outcome"),
+    "audit_log": ("id", "action", "event_id", "room", "actor", "status"),
+}
+
+
+def public_dataset(name: str, rows: list[dict]) -> list[dict]:
+    """Return a safe projection for browser/API consumers."""
+    fields = PUBLIC_DATASET_FIELDS.get(name, ())
+    return [{field: row[field] for field in fields if field in row} for row in rows]
+
+
+def public_recipient(item: dict) -> dict:
+    """Keep communication previews useful without returning contact identity."""
+    return {field: item[field] for field in ("id", "event_id", "language", "attendance", "consent_email") if field in item}
+
+
+def public_pending(task: dict | None) -> dict | None:
+    """Project workflow state without returning evidence copied from a notice."""
+    if not task:
+        return None
+    safe = {field: deepcopy(task[field]) for field in (
+        "status", "reason", "original_room", "conflicts", "suggested_room",
+        "source_id", "source_hash", "privacy",
+    ) if field in task}
+    change = task.get("change")
+    if change:
+        safe["change"] = {field: deepcopy(change[field]) for field in (
+            "event_id", "date", "start", "duration_min", "method",
+        ) if field in change}
+    return safe
+
 
 def minutes(clock: str) -> int:
     assert re.fullmatch(r"(?:[01]\d|2[0-3]):[0-5]\d", clock)
@@ -495,7 +542,7 @@ class Engine:
         if not event:
             raise ValueError("Unknown event")
         recipients = [item for item in DATASETS["participants"] if item.get("event_id") == event["id"] and item.get("consent_email")]
-        return {"event": deepcopy(event), "recipient_count": len(recipients), "recipients": deepcopy(recipients),
+        return {"event": public_dataset("events", [event])[0], "recipient_count": len(recipients), "recipients": [public_recipient(item) for item in recipients],
                 "channel": "email", "status": "preview", "message": {
                     "subject": f"Aggiornamento evento {event['name']}",
                     "body": f"L'evento {event['name']} del {event['date']} inizierà alle {event['start']} nella sala {event['room']}. Durata: {event['duration_min']} minuti. Questa è una comunicazione demo.",
@@ -523,14 +570,14 @@ class Engine:
             return self.snapshot(role)
 
     def snapshot(self, role: str) -> dict:
-        data = {"role": role, "demo_only": True, "events": deepcopy(self.events),
-                "bookings": deepcopy(self.bookings),
+        data = {"role": role, "demo_only": True, "events": public_dataset("events", self.events),
+                "bookings": public_dataset("bookings", self.bookings),
                 "notifications": deepcopy(self.notifications),
-                "pending": deepcopy(self.pending), "source_count": len(self.sources),
+                "pending": public_pending(self.pending), "source_count": len(self.sources),
                 "data_quality": {"status": DATA_QUALITY["status"], "row_count": DATA_QUALITY["row_count"]}}
         if role == "Administrator":
             data["audit"] = deepcopy(self.audit)
-            data["sources"] = deepcopy(self.sources)
+            data["sources"] = [{"id": source["id"], "sha256_prefix": source["sha256_prefix"], "text_length": len(source["text"])} for source in self.sources]
         return data
 
 ENGINE = Engine()
@@ -538,17 +585,17 @@ ENGINE = Engine()
 HTML = """<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>H-OS — Event Coordinator</title>
 <style>body{margin:0;background:#f6f8f6;color:#15211c;font:15px/1.5 system-ui,Arial}main{max-width:1100px;margin:auto;padding:40px 22px}header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #d6ded9;margin-bottom:24px}h1{font-size:34px;margin:0}h2{font-size:18px;margin:0 0 12px}small,.muted{color:#66736e}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.panel{background:white;border:1px solid #dbe3de;border-radius:15px;padding:22px;margin-bottom:18px}textarea{font:inherit;box-sizing:border-box;width:100%;min-height:110px;border:1px solid #cbd5ce;border-radius:8px;padding:12px}select,button{font:inherit;border-radius:8px;padding:10px 14px;border:1px solid #9da9a2;background:white;cursor:pointer}button.primary{background:#2ca879;color:#092a20;border-color:#2ca879;font-weight:650}button:disabled{opacity:.5}pre{overflow:auto;white-space:pre-wrap;word-break:break-word;background:#f5f8f5;border-radius:8px;padding:13px}.bad{color:#b34141}.good{color:#177b57}.tags{display:flex;gap:6px;flex-wrap:wrap}span.tag{background:#ddf7ea;border-radius:20px;padding:2px 9px}#message{min-height:24px}@media(max-width:750px){.grid{grid-template-columns:1fr}header{display:block}}</style>
 <main><header><div><small>H-OS · SISTEMA INTEGRALE · VERTICAL SLICE</small><h1>H-OS / Event Coordinator</h1><p class="muted">Un messaggio → dati strutturati → impatto → decisione autorizzata.</p></div><label>Demo role<br><select id="role"><option>Event Operations Manager</option><option>Space Coordinator</option><option>Administrator</option></select></label></header>
-<div class="grid"><section class="panel"><h2>01 — Source / Librarian + Gemma 4</h2><p class="muted">L’LLM trasforma il messaggio in evento, giorno, ora e durata. Il motore locale decide conflitti e permessi.</p><p class="muted">Email e telefoni vengono rimossi prima dell’eventuale chiamata al modello; la fonte originale resta nella demo.</p><textarea id="notice">Il workshop AI #204 è stato spostato dalle 15:00 alle 17:30 del 31 ottobre. La durata rimane di 90 minuti.</textarea><p>Extraction mode: <strong id="mode"></strong></p><button class="primary" id="analyse">Analyse event update</button></section>
+<div class="grid"><section class="panel"><h2>01 — Source / Librarian + Gemma 4</h2><p class="muted">L’LLM trasforma il messaggio in evento, giorno, ora e durata. Il motore locale decide conflitti e permessi.</p><p class="muted">Email e telefoni vengono rimossi prima dell’eventuale chiamata al modello; la fonte originale resta solo nella memoria locale della demo.</p><textarea id="notice">Il workshop AI #204 è stato spostato dalle 15:00 alle 17:30 del 31 ottobre. La durata rimane di 90 minuti.</textarea><p>Extraction mode: <strong id="mode"></strong></p><button class="primary" id="analyse">Analyse event update</button></section>
 <section class="panel"><h2>02 — Brain / Ontology</h2><p class="muted">Objects: Event, Room, Booking. Relations: Event → reserves → Room.</p><div id="events"></div></section></div>
 <div class="grid"><section class="panel"><h2>03 — Agent / Impact analysis</h2><div id="impact"><p class="muted">No event change analysed.</p></div></section><section class="panel"><h2>04 — Policy / Actions</h2><div id="actions"><p class="muted">No pending actions.</p></div><p class="muted">Approval changes a mock booking only. Role selection is not production authentication.</p></section></div>
-<section class="panel"><h2>05 — Provenance & audit</h2><div id="audit"><p class="muted">Switch to Administrator to view all source records and audit entries.</p></div></section><p id="message"></p><small>Only synthetic data · Localhost · No real system integrations · Human approval for mock booking writes</small></main>
+<section class="panel"><h2>05 — Provenance & audit</h2><div id="audit"><p class="muted">Switch to Administrator to view audit metadata.</p></div></section><p id="message"></p><small>Only synthetic data · Localhost · No real system integrations · Human approval for mock booking writes</small></main>
 <script>
 const $=id=>document.getElementById(id);const role=$('role');let modelMode='baseline';
 async function api(path,body=null){let r=await fetch('/api/'+path,{method:body?'POST':'GET',headers:{'Content-Type':'application/json','X-Demo-Role':role.value},body:body?JSON.stringify(body):undefined});let x=await r.json();if(!r.ok)throw Error(x.error||'Request failed');return x}
 function el(tag,txt,cls){let n=document.createElement(tag);n.textContent=txt;if(cls)n.className=cls;return n}
 function show(data){$('events').replaceChildren();for(let e of data.events){let p=el('p',`#${e.id} ${e.name} · ${e.date} ${e.start} · ${e.duration_min} min · ${e.room}`);$('events').appendChild(p)}
- $('impact').replaceChildren();$('actions').replaceChildren();if(data.pending){let p=data.pending; $('impact').appendChild(el('p',`State: ${p.status}`));if(p.change){$('impact').appendChild(el('p',`Gemma/Parser: ${p.change.method}`));$('impact').appendChild(el('p',`Change: #${p.change.event_id}, ${p.change.start}, duration ${p.change.duration_min} min`));$('impact').appendChild(el('p',`Source: ${p.source_id} · ${p.change.evidence}`));$('impact').appendChild(el('p',p.conflicts.length?'Room conflict with event #'+p.conflicts.join(', '):'No booking conflict',p.conflicts.length?'bad':'good'));$('actions').appendChild(el('p',p.conflicts.length?`Suggested alternative: ${p.suggested_room||'NONE AVAILABLE'}`:'Current room is available'));}if(p.reason)$('impact').appendChild(el('p',p.reason,'bad'));if(p.status==='approval_required'&&role.value==='Space Coordinator'){for(let [yes,label] of [[true,'Approve mock booking'],[false,'Reject change']]){let b=el('button',label,yes?'primary':'');b.onclick=async()=>{try{show(await api('decide',{approve:yes}));setMessage('Decision recorded')}catch(e){setMessage(e.message,true)}};$('actions').appendChild(b)}}else $('actions').appendChild(el('p','Change is pending review, completed, or not available for this role.'));}else{$('impact').appendChild(el('p','No event change analysed.'));$('actions').appendChild(el('p','No action pending.'))}
- $('audit').replaceChildren();if(data.audit){for(let a of data.audit)$('audit').appendChild(el('pre',JSON.stringify(a,null,2))); for(let s of data.sources)$('audit').appendChild(el('pre',`SOURCE ${s.id} [${s.sha256_prefix}]\n${s.text}`));}else $('audit').appendChild(el('p','Administrator view required to see audit and original sources.'));}
+ $('impact').replaceChildren();$('actions').replaceChildren();if(data.pending){let p=data.pending; $('impact').appendChild(el('p',`State: ${p.status}`));if(p.change){$('impact').appendChild(el('p',`Gemma/Parser: ${p.change.method}`));$('impact').appendChild(el('p',`Change: #${p.change.event_id}, ${p.change.start}, duration ${p.change.duration_min} min`));$('impact').appendChild(el('p',`Source: ${p.source_id} · original content withheld`));$('impact').appendChild(el('p',p.conflicts.length?'Room conflict with event #'+p.conflicts.join(', '):'No booking conflict',p.conflicts.length?'bad':'good'));$('actions').appendChild(el('p',p.conflicts.length?`Suggested alternative: ${p.suggested_room||'NONE AVAILABLE'}`:'Current room is available'));}if(p.reason)$('impact').appendChild(el('p',p.reason,'bad'));if(p.status==='approval_required'&&role.value==='Space Coordinator'){for(let [yes,label] of [[true,'Approve mock booking'],[false,'Reject change']]){let b=el('button',label,yes?'primary':'');b.onclick=async()=>{try{show(await api('decide',{approve:yes}));setMessage('Decision recorded')}catch(e){setMessage(e.message,true)}};$('actions').appendChild(b)}}else $('actions').appendChild(el('p','Change is pending review, completed, or not available for this role.'));}else{$('impact').appendChild(el('p','No event change analysed.'));$('actions').appendChild(el('p','No action pending.'))}
+ $('audit').replaceChildren();if(data.audit){for(let a of data.audit)$('audit').appendChild(el('pre',JSON.stringify(a,null,2))); for(let s of data.sources)$('audit').appendChild(el('pre',`SOURCE ${s.id} [${s.sha256_prefix}] · ${s.text_length} characters (content withheld)`));}else $('audit').appendChild(el('p','Administrator view required to see audit metadata.'));}
 function setMessage(m,error=false){$('message').textContent=m;$('message').className=error?'bad':'good'}async function refresh(){try{show(await api('state'));$('mode').textContent=modelMode==='backboard'?'Gemma · Backboard cloud':modelMode==='gemma'?'Gemma 4 E2B · Ollama':'Deterministic baseline · NOT AI'}catch(e){setMessage(e.message,true)}}
 $('analyse').onclick=async()=>{try{show(await api('ingest',{notice:$('notice').value}));setMessage('Source processed; agent analysis completed.')}catch(e){setMessage(e.message,true)}};role.onchange=refresh;fetch('/api/health').then(r=>r.json()).then(x=>{modelMode=x.mode;refresh()});
 </script></html>"""
@@ -590,7 +637,7 @@ class Handler(BaseHTTPRequestHandler):
             if name not in DATASETS:
                 self.send_json({"error": "Unknown dataset"}, 404)
             else:
-                self.send_json({"name": name, "items": deepcopy(DATASETS[name])})
+                self.send_json({"name": name, "items": public_dataset(name, DATASETS[name])})
         else:
             self.send_json({"error": "Not found"}, 404)
 

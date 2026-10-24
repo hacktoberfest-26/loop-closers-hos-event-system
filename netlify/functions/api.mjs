@@ -11,6 +11,31 @@ const datasets = {
   policies: load('policies'), source_messages: load('source_messages'), participants: load('participants'),
   notification_templates: load('notification_templates'), audit_log: load('audit_log')
 }
+const publicDatasetFields = {
+  events: ['id', 'name', 'date', 'start', 'duration_min', 'room', 'format', 'attendance_expected', 'status', 'venue_id'],
+  rooms: ['id', 'building', 'floor', 'capacity', 'accessibility', 'equipment', 'status'],
+  bookings: ['id', 'event_id', 'room', 'date', 'start', 'end', 'status'],
+  resources: ['id', 'name', 'quantity', 'available'],
+  change_requests: ['id', 'channel', 'language', 'event_id', 'gold_outcome'],
+  buildings: ['id', 'name', 'category', 'campus_zone', 'capacity_note', 'confidence'],
+  venue_profiles: ['venue_id', 'venue_name', 'event_types', 'capacity_range', 'requirements'],
+  organizations: ['id', 'name', 'type'],
+  people: ['id', 'role', 'organization_id', 'can_ingest', 'can_approve', 'can_view_audit'],
+  participants: ['id', 'event_id', 'language', 'attendance', 'consent_email'],
+  notification_templates: ['id', 'event_type', 'language', 'channel', 'subject', 'body'],
+  maintenance_windows: ['id', 'date', 'start', 'end', 'building_id', 'reason', 'blocks_event'],
+  policies: ['id', 'name', 'scope', 'rule', 'on_violation'],
+  source_messages: ['id', 'channel', 'language', 'event_id', 'expected_outcome'],
+  audit_log: ['id', 'action', 'event_id', 'room', 'actor', 'status']
+}
+const publicDataset = (name, rows) => rows.map(row => Object.fromEntries((publicDatasetFields[name] || []).filter(field => field in row).map(field => [field, row[field]])))
+const publicRecipient = item => Object.fromEntries(['id', 'event_id', 'language', 'attendance', 'consent_email'].filter(field => field in item).map(field => [field, item[field]]))
+const publicPending = value => {
+  if (!value) return null
+  const safe = Object.fromEntries(['status', 'reason', 'original_room', 'conflicts', 'suggested_room', 'source_id', 'source_hash', 'privacy'].filter(field => field in value).map(field => [field, value[field]]))
+  if (value.change) safe.change = Object.fromEntries(['event_id', 'date', 'start', 'duration_min', 'method'].filter(field => field in value.change).map(field => [field, value.change[field]]))
+  return safe
+}
 let events = structuredClone(datasets.events)
 let bookings = structuredClone(datasets.bookings)
 let pending = null
@@ -35,7 +60,7 @@ function communicationPreview(eventId) {
   const event = events.find(item => item.id === String(eventId))
   if (!event) throw new Error('Unknown event')
   const recipients = datasets.participants.filter(item => item.event_id === event.id && item.consent_email)
-  return { event, recipient_count: recipients.length, recipients, channel: 'email', status: 'preview', message: {
+  return { event: publicDataset('events', [event])[0], recipient_count: recipients.length, recipients: recipients.map(publicRecipient), channel: 'email', status: 'preview', message: {
     subject: `Aggiornamento evento ${event.name}`,
     body: `L'evento ${event.name} del ${event.date} inizierà alle ${event.start} nella sala ${event.room}. Durata: ${event.duration_min} minuti. Questa è una comunicazione demo.`
   } }
@@ -114,7 +139,7 @@ export default async function handler(request) {
   const role = request.headers.get('x-demo-role') || ''
   try {
     if (request.method === 'GET' && path === 'health') return json(200, { status: 'ok', mode: process.env.HOS_MODE || 'google', model: process.env.HOS_MODE === 'google' ? (process.env.GOOGLE_MODEL || 'gemma-4-31b-it') : (process.env.BACKBOARD_MODEL_NAME || 'google/gemma-4-31b-it') })
-    if (request.method === 'GET' && path === 'state') return json(200, { role, demo_only: true, events, bookings, notifications, pending, source_count: pending ? 1 : 0, ...(role === 'Administrator' ? { audit } : {}) })
+    if (request.method === 'GET' && path === 'state') return json(200, { role, demo_only: true, events: publicDataset('events', events), bookings: publicDataset('bookings', bookings), notifications, pending: publicPending(pending), source_count: pending ? 1 : 0, ...(role === 'Administrator' ? { audit } : {}) })
     if (request.method === 'GET' && path === 'datasets') return json(200, { datasets: Object.fromEntries(Object.entries(datasets).map(([key, value]) => [key, value.length])) })
     if (request.method === 'GET' && path === 'data-quality') return json(200, {
       status: 'pass',
@@ -125,7 +150,7 @@ export default async function handler(request) {
     if (request.method === 'GET' && path.startsWith('datasets/')) {
       const name = path.split('/')[1]
       if (!datasets[name]) return json(404, { error: 'Unknown dataset' })
-      return json(200, { name, items: datasets[name] })
+      return json(200, { name, items: publicDataset(name, datasets[name]) })
     }
     if (request.method !== 'POST') return json(404, { error: 'Not found' })
     const body = await request.json()
@@ -136,13 +161,13 @@ export default async function handler(request) {
       const digest = createHash('sha256').update(text).digest('hex').slice(0, 12)
       let change
       try { change = process.env.HOS_MODE === 'baseline' ? baselineExtract(text) : process.env.HOS_MODE === 'simulation' ? simulationExtract(text) : process.env.HOS_MODE === 'google' ? await googleExtract(text) : await modelExtract(text); change = validate(change, text) }
-      catch (error) { pending = { status: 'human_review', reason: error.message, source_id: `notice-${digest}`, privacy: privacyReport(text) }; return json(200, { role, demo_only: true, events, bookings, pending, source_count: 1 }) }
+      catch (error) { pending = { status: 'human_review', reason: error.message, source_id: `notice-${digest}`, privacy: privacyReport(text) }; return json(200, { role, demo_only: true, events: publicDataset('events', events), bookings: publicDataset('bookings', bookings), pending: publicPending(pending), source_count: 1 }) }
       const event = events.find(e => e.id === change.event_id)
       const conflictIds = conflicts(event.id, change.date, change.start, change.duration_min, event.room)
       const alternative = datasets.rooms.map(room => room.id).find(room => room !== event.room && roomCanHost(event, change.date, change.start, change.duration_min, room) && conflicts(event.id, change.date, change.start, change.duration_min, room).length === 0)
       pending = { status: 'approval_required', change, original_room: event.room, conflicts: conflictIds, suggested_room: alternative || null, source_id: `notice-${digest}`, source_hash: digest, privacy: privacyReport(text) }
       audit = [{ action: 'impact_analysed', event: event.id, conflicts: conflictIds, suggested_room: alternative || null, source: pending.source_id, method: change.method }]
-      return json(200, { role, demo_only: true, events, bookings, pending, source_count: 1 })
+      return json(200, { role, demo_only: true, events: publicDataset('events', events), bookings: publicDataset('bookings', bookings), pending: publicPending(pending), source_count: 1 })
     }
     if (path === 'decide') {
       if (role !== 'Space Coordinator') return json(403, { error: 'Only the Space Coordinator can approve booking changes' })
@@ -158,7 +183,7 @@ export default async function handler(request) {
         audit.push({ action: 'mock_booking_updated', event: event.id, room, actor: role, source: pending.source_id })
         pending = { ...pending, status: 'approved_and_applied_mock' }
       } else { audit.push({ action: 'booking_change_rejected', source: pending.source_id, actor: role }); pending = { ...pending, status: 'rejected' } }
-      return json(200, { role, demo_only: true, events, bookings, pending, source_count: 1 })
+      return json(200, { role, demo_only: true, events: publicDataset('events', events), bookings: publicDataset('bookings', bookings), pending: publicPending(pending), source_count: 1 })
     }
     if (path === 'communications/preview') {
       if (!['Event Operations Manager', 'Space Coordinator', 'Administrator'].includes(role)) return json(403, { error: 'Role cannot prepare participant communications' })
@@ -177,7 +202,7 @@ export default async function handler(request) {
       pending = null
       audit = []
       notifications = []
-      return json(200, { role, demo_only: true, events, bookings, notifications, pending, source_count: 0 })
+      return json(200, { role, demo_only: true, events: publicDataset('events', events), bookings: publicDataset('bookings', bookings), notifications, pending, source_count: 0 })
     }
     return json(404, { error: 'Not found' })
   } catch (error) { return json(500, { error: error.message || 'Internal server error' }) }

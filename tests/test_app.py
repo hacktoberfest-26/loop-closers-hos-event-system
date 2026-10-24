@@ -79,6 +79,28 @@ class SliceTests(unittest.TestCase):
         self.assertNotIn('audit',self.engine.snapshot('Event Operations Manager'))
         self.assertIn('audit',self.engine.snapshot('Administrator'))
 
+    def test_admin_snapshot_withholds_original_source_text(self):
+        self.engine.ingest('Event Operations Manager', app.DEFAULT_NOTICE)
+        source = self.engine.snapshot('Administrator')['sources'][0]
+        self.assertNotIn('text', source)
+        self.assertEqual(source['text_length'], len(app.DEFAULT_NOTICE))
+
+    def test_workflow_projection_withholds_notice_evidence(self):
+        state = self.engine.ingest('Event Operations Manager', app.DEFAULT_NOTICE)
+        self.assertNotIn('evidence', state['pending']['change'])
+        self.assertEqual(state['pending']['change']['start'], '17:30')
+
+    def test_public_dataset_projection_withholds_contact_and_raw_text_fields(self):
+        participants = app.public_dataset('participants', app.DATASETS['participants'])
+        self.assertTrue(participants)
+        self.assertNotIn('name', participants[0])
+        self.assertNotIn('email', participants[0])
+        messages = app.public_dataset('source_messages', app.DATASETS['source_messages'])
+        self.assertNotIn('sender', messages[0])
+        self.assertNotIn('text', messages[0])
+        self.assertNotIn('name', app.DATASETS['people'][0])
+        self.assertNotIn('raw_text', app.DATASETS['change_requests'][0])
+
     def test_non_owner_cannot_ingest(self):
         with self.assertRaises(PermissionError):
             self.engine.ingest('Administrator', app.DEFAULT_NOTICE)
@@ -161,6 +183,8 @@ class SliceTests(unittest.TestCase):
         preview = self.engine.notification_preview("Space Coordinator", "204")
         self.assertEqual(preview["recipient_count"], 4)
         self.assertIn("B3-202", preview["message"]["body"])
+        self.assertNotIn("email", preview["recipients"][0])
+        self.assertNotIn("name", preview["recipients"][0])
 
     def test_notification_send_is_role_gated_and_audited(self):
         with self.assertRaises(PermissionError):

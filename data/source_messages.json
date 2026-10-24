@@ -1,6 +1,38 @@
 [
-  {"id":"MSG-001","channel":"email","language":"it","sender":"learning-lab@example.test","received_at":"2026-10-24T09:12:00+02:00","event_id":"204","text":"Il workshop AI #204 è stato spostato dalle 15:00 alle 17:30 del 31 ottobre. La durata rimane di 90 minuti.","expected_outcome":"valid_change","data_status":"synthetic"},
-  {"id":"MSG-002","channel":"slack","language":"en","sender":"startup-center@example.test","received_at":"2026-10-24T10:04:00+02:00","event_id":"212","text":"Founder Pitch Night 212 moves to 18:00 on Nov 3, same 120-minute format. Please check the venue.","expected_outcome":"valid_change","data_status":"synthetic"},
-  {"id":"MSG-003","channel":"whatsapp","language":"it","sender":"unknown@example.test","received_at":"2026-10-24T10:41:00+02:00","event_id":"209","text":"Forse il roundtable del 1 novembre viene spostato, vi aggiorno.","expected_outcome":"human_review","data_status":"synthetic"},
-  {"id":"MSG-004","channel":"calendar_forward","language":"en","sender":"business-school@example.test","received_at":"2026-10-24T11:18:00+02:00","event_id":"213","text":"Correction: the Leadership Retreat remains at 09:00 on Nov 4. This is not a reschedule.","expected_outcome":"no_time_change","data_status":"synthetic"}
+  {
+    "id": "MSG-001",
+    "channel": "email",
+    "language": "it",
+    "received_at": "2026-10-24T09:12:00+02:00",
+    "event_id": "204",
+    "expected_outcome": "valid_change",
+    "data_status": "synthetic"
+  },
+  {
+    "id": "MSG-002",
+    "channel": "slack",
+    "language": "en",
+    "received_at": "2026-10-24T10:04:00+02:00",
+    "event_id": "212",
+    "expected_outcome": "valid_change",
+    "data_status": "synthetic"
+  },
+  {
+    "id": "MSG-003",
+    "channel": "whatsapp",
+    "language": "it",
+    "received_at": "2026-10-24T10:41:00+02:00",
+    "event_id": "209",
+    "expected_outcome": "human_review",
+    "data_status": "synthetic"
+  },
+  {
+    "id": "MSG-004",
+    "channel": "calendar_forward",
+    "language": "en",
+    "received_at": "2026-10-24T11:18:00+02:00",
+    "event_id": "213",
+    "expected_outcome": "no_time_change",
+    "data_status": "synthetic"
+  }
 ]

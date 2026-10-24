@@ -2,10 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import './styles.css'
 import { staticRequest } from './staticDemo'
-import eventsData from '../../data/events.json'
-import bookingsData from '../../data/bookings.json'
-import roomsData from '../../data/rooms.json'
-import participantsData from '../../data/participants.json'
+import { events as eventsData, bookings as bookingsData, rooms as roomsData, participants as participantsData } from './publicDemoData'
 
 const demoNotice = 'Il workshop AI #204 è stato spostato dalle 15:00 alle 17:30 del 31 ottobre. La durata rimane di 90 minuti.'
 const roles = ['Event Operations Manager', 'Space Coordinator', 'Administrator']

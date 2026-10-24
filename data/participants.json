@@ -1,9 +1,58 @@
 [
-  {"id":"ATT-204-01","event_id":"204","name":"Giulia Ferri","email":"giulia.ferri@example.test","language":"it","attendance":"registered","consent_email":true,"data_status":"synthetic"},
-  {"id":"ATT-204-02","event_id":"204","name":"Luca Romano","email":"luca.romano@example.test","language":"it","attendance":"registered","consent_email":true,"data_status":"synthetic"},
-  {"id":"ATT-204-03","event_id":"204","name":"Maya Chen","email":"maya.chen@example.test","language":"en","attendance":"registered","consent_email":true,"data_status":"synthetic"},
-  {"id":"ATT-204-04","event_id":"204","name":"Thomas Weber","email":"thomas.weber@example.test","language":"en","attendance":"waitlist","consent_email":true,"data_status":"synthetic"},
-  {"id":"ATT-205-01","event_id":"205","name":"Anna Costa","email":"anna.costa@example.test","language":"it","attendance":"registered","consent_email":true,"data_status":"synthetic"},
-  {"id":"ATT-205-02","event_id":"205","name":"Omar Haddad","email":"omar.haddad@example.test","language":"en","attendance":"registered","consent_email":true,"data_status":"synthetic"},
-  {"id":"ATT-212-01","event_id":"212","name":"Elisa Moretti","email":"elisa.moretti@example.test","language":"it","attendance":"registered","consent_email":true,"data_status":"synthetic"}
+  {
+    "id": "ATT-204-01",
+    "event_id": "204",
+    "language": "it",
+    "attendance": "registered",
+    "consent_email": true,
+    "data_status": "synthetic"
+  },
+  {
+    "id": "ATT-204-02",
+    "event_id": "204",
+    "language": "it",
+    "attendance": "registered",
+    "consent_email": true,
+    "data_status": "synthetic"
+  },
+  {
+    "id": "ATT-204-03",
+    "event_id": "204",
+    "language": "en",
+    "attendance": "registered",
+    "consent_email": true,
+    "data_status": "synthetic"
+  },
+  {
+    "id": "ATT-204-04",
+    "event_id": "204",
+    "language": "en",
+    "attendance": "waitlist",
+    "consent_email": true,
+    "data_status": "synthetic"
+  },
+  {
+    "id": "ATT-205-01",
+    "event_id": "205",
+    "language": "it",
+    "attendance": "registered",
+    "consent_email": true,
+    "data_status": "synthetic"
+  },
+  {
+    "id": "ATT-205-02",
+    "event_id": "205",
+    "language": "en",
+    "attendance": "registered",
+    "consent_email": true,
+    "data_status": "synthetic"
+  },
+  {
+    "id": "ATT-212-01",
+    "event_id": "212",
+    "language": "it",
+    "attendance": "registered",
+    "consent_email": true,
+    "data_status": "synthetic"
+  }
 ]

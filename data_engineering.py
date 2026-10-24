@@ -15,8 +15,8 @@ REQUIRED_FIELDS = {
     "rooms": ("id", "capacity", "status"),
     "bookings": ("id", "event_id", "room", "date", "start", "end", "status"),
     "buildings": ("id", "name", "category", "source_ref", "confidence"),
-    "source_messages": ("id", "channel", "language", "received_at", "text", "expected_outcome"),
-    "participants": ("id", "event_id", "name", "email", "language", "consent_email"),
+    "source_messages": ("id", "channel", "language", "received_at", "event_id", "expected_outcome"),
+    "participants": ("id", "event_id", "language", "consent_email"),
     "notification_templates": ("id", "event_type", "language", "channel", "subject", "body"),
     "policies": ("id", "name", "scope", "rule", "on_violation"),
 }
