@@ -2,12 +2,28 @@ import React, { useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import './styles.css'
 import { staticRequest } from './staticDemo'
+import eventsData from '../../data/events.json'
+import bookingsData from '../../data/bookings.json'
+import roomsData from '../../data/rooms.json'
+import participantsData from '../../data/participants.json'
 
 const demoNotice = 'Il workshop AI #204 è stato spostato dalle 15:00 alle 17:30 del 31 ottobre. La durata rimane di 90 minuti.'
 const roles = ['Event Operations Manager', 'Space Coordinator', 'Administrator']
 const datasets = ['events', 'rooms', 'bookings', 'resources', 'change_requests', 'buildings', 'venue_profiles', 'organizations', 'people', 'participants', 'notification_templates', 'maintenance_windows', 'policies', 'source_messages']
 const staticDemo = import.meta.env.VITE_STATIC_DEMO === 'true'
 const asset = name => `${import.meta.env.BASE_URL}${name}`
+const demoEvent = eventsData.find(item => item.id === '204')
+const demoConflict = eventsData.find(item => item.id === '205')
+const demoBooking = bookingsData.find(item => item.event_id === '205')
+const demoAlternative = roomsData.find(item => item.id === 'B3-202')
+const demoParticipants = participantsData.filter(item => item.event_id === '204' && item.consent_email)
+const demoScenario = {
+  event: demoEvent,
+  conflict: demoConflict,
+  booking: demoBooking,
+  alternative: demoAlternative,
+  participantCount: demoParticipants.length,
+}
 
 async function request(path, role, options = {}) {
   if (staticDemo) return staticRequest(path, role, options)
@@ -28,6 +44,23 @@ const initialMessages = [
 
 function Badge({ children, tone = 'neutral' }) { return <span className={`badge ${tone}`}>{children}</span> }
 function InfoRow({ label, value, tone = '' }) { return <div className="info-row"><span>{label}</span><strong className={tone}>{value}</strong></div> }
+
+function ScenarioCard({ onRun, busy }) {
+  return <section className="context-card scenario-card" aria-label="Scenario sintetico della demo">
+    <div className="context-heading"><span>SCENARIO SINTETICO</span><Badge tone="blue">Dati demo</Badge></div>
+    <h2>{demoScenario.event.name} <span>#{demoScenario.event.id}</span></h2>
+    <p>Il caso già pronto per mostrare il flusso completo.</p>
+    <div className="scenario-grid">
+      <div><span>Nuovo orario</span><strong>{demoScenario.event.date} · 17:30–19:00</strong></div>
+      <div><span>Sala attuale</span><strong>{demoScenario.event.room}</strong></div>
+      <div><span>Conflitto</span><strong>#{demoScenario.conflict.id} · {demoScenario.booking.start}–{demoScenario.booking.end}</strong></div>
+      <div><span>Alternativa</span><strong>{demoScenario.alternative.id} · {demoScenario.alternative.capacity} posti</strong></div>
+      <div><span>Partecipanti</span><strong>{demoScenario.participantCount} con consenso email</strong></div>
+    </div>
+    <button className="scenario-button" type="button" onClick={onRun} disabled={busy}>Avvia simulazione <span aria-hidden="true">↗</span></button>
+    <small className="scenario-note">La simulazione si ferma prima dell’approvazione umana.</small>
+  </section>
+}
 
 function ChatMessage({ message }) {
   const assistant = message.actor === 'assistant'
@@ -99,13 +132,11 @@ function App() {
     try { setDatasetRows((await request(`datasets/${name}`, role)).items); setError('') } catch (e) { setError(e.message) }
   }
 
-  async function analyse(event) {
-    event?.preventDefault()
-    const submitted = notice.trim()
+  async function analyseNotice(submitted, actorRole = role) {
     if (!submitted) return
     setBusy(true); setFeedback(''); setError('')
     try {
-      const data = await request('ingest', role, { method: 'POST', body: JSON.stringify({ notice: submitted }) })
+      const data = await request('ingest', actorRole, { method: 'POST', body: JSON.stringify({ notice: submitted }) })
       setResult(data); setState(data)
       const next = data.pending?.status === 'human_review'
         ? { text: 'Ho bisogno di una verifica umana prima di procedere.', detail: data.pending.reason }
@@ -115,6 +146,17 @@ function App() {
       setMessages(previous => [...previous, { id: `user-${Date.now()}`, actor: 'user', text: submitted }, { id: `assistant-${Date.now()}`, actor: 'assistant', ...next }])
       setFeedback('Analisi completata')
     } catch (e) { setError(e.message) } finally { setBusy(false) }
+  }
+
+  async function analyse(event) {
+    event?.preventDefault()
+    await analyseNotice(notice.trim())
+  }
+
+  async function runSimulation() {
+    setRole(roles[0])
+    setNotice(demoNotice)
+    await analyseNotice(demoNotice, roles[0])
   }
 
   async function decide(approve) {
@@ -169,6 +211,7 @@ function App() {
 
         <aside className="context-panel" aria-label="Contesto operativo">
           <section className="context-card status-card"><div className="context-heading"><span>STATO</span><Badge tone={stateTone}>{stateLabel}</Badge></div><h2>{pending?.status === 'approval_required' ? 'Una decisione ti aspetta.' : pending?.status === 'approved_and_applied_mock' ? 'Tutto pronto.' : 'Sono pronto ad aiutarti.'}</h2><p>{pending?.status === 'approval_required' ? 'Controlla il conflitto e scegli se confermare la modifica.' : pending?.status === 'approved_and_applied_mock' ? 'La modifica è stata registrata. Puoi avvisare i partecipanti.' : 'Parti da un messaggio ricevuto: il calendario resta sullo sfondo.'}</p></section>
+          <ScenarioCard onRun={runSimulation} busy={busy} />
           <section className="context-card"><div className="context-heading"><span>CONTROLLO</span><span className="check-status"><i /> {quality.status === 'pass' ? 'Dati verificati' : 'In attesa'}</span></div><InfoRow label="Eventi nel catalogo" value={state.events?.length || '—'} /><InfoRow label="Fonti ricevute" value={state.source_count || 0} /><InfoRow label="Modifiche aperte" value={pending?.status === 'approval_required' ? 1 : 0} tone={pending?.status === 'approval_required' ? 'accent' : ''} /></section>
           <details className="context-card details-card"><summary>Privacy e traccia</summary><div className="details-content"><p>Le informazioni vengono usate solo per verificare il cambio. Il modello non autorizza azioni e le comunicazioni sono simulate.</p>{pending?.privacy && <div className="privacy-list"><InfoRow label="Elementi rimossi" value={pending.privacy.redactions} /><InfoRow label="Fonte originale" value="Conservata localmente" /></div>}{state.audit?.length > 0 && <div className="audit-list"><span className="overline">ULTIME ATTIVITÀ</span>{state.audit.slice(-3).reverse().map((entry, index) => <div className="audit-item" key={`${entry.action}-${index}`}><i /><span>{entry.action.replaceAll('_', ' ')}</span></div>)}</div>}</div></details>
           <details className="context-card details-card"><summary>Dati della demo</summary><div className="details-content"><label className="dataset-label" htmlFor="dataset">Dataset</label><select id="dataset" value={selectedDataset} onChange={event => loadDataset(event.target.value)}>{datasets.map(name => <option key={name}>{name}</option>)}</select><div className="table-wrap"><table><caption className="sr-only">Prime righe del dataset {selectedDataset}</caption><thead><tr>{datasetRows[0] && Object.keys(datasetRows[0]).slice(0, 3).map(key => <th scope="col" key={key}>{key.replaceAll('_', ' ')}</th>)}</tr></thead><tbody>{datasetRows.slice(0, 4).map((row, index) => <tr key={index}>{Object.keys(datasetRows[0] || {}).slice(0, 3).map(key => <td key={key}>{String(row[key] ?? '—')}</td>)}</tr>)}</tbody></table></div></div></details>
